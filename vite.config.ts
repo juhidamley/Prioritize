@@ -4,9 +4,9 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
+  base: '/prioritize/', // Add this line
   plugins: [
     react(),
-    // This is the crucial line I missed! It tells Vite to process Tailwind v4.
     tailwindcss(),
   ],
   resolve: {

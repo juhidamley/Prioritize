@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/prioritize/:path*",
+      "destination": "/prioritize/index.html"
+    }
+  ]
+}
