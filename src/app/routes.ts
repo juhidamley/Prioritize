@@ -17,5 +17,5 @@ export const router = createBrowserRouter([
     Component: Login,
   },
 ], {
-  basename: '/prioritize', // Add this basename option here
+  basename: '/prioritize',
 });
