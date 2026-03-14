@@ -15,33 +15,53 @@ export function QueueList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newQueueName, setNewQueueName] = useState('');
   const [selectedColor, setSelectedColor] = useState(DEFAULT_QUEUE_COLORS[0]);
+  
+  // Custom 6-color palette state
+  const [palette, setPalette] = useState<string[]>([
+    '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#a855f7'
+  ]);
+  const [editingColorIndex, setEditingColorIndex] = useState<number>(0);
 
   const mainQueues = store.getMainQueues();
 
-  const handleCreateQueue = () => {
+  const handleCreateQueue = async () => {
     if (newQueueName.trim()) {
-      const newQueue = store.addQueue(newQueueName, selectedColor);
+      // Wait for the cloud to create the queue
+      const newQueue = await store.addQueue(newQueueName, selectedColor, palette);
+      
       setNewQueueName('');
       setSelectedColor(DEFAULT_QUEUE_COLORS[0]);
       setIsDialogOpen(false);
-      navigate(`/queue/${newQueue.id}`);
+      
+      // Navigate using the ID returned from the database
+      if (newQueue) {
+        navigate(`/queue/${newQueue.id}`);
+      }
     }
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Header */}
-      <div className="p-6 border-b bg-white">
+    <div className="p-6 border-b bg-white">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Queues</h1>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <div className="flex items-center gap-3">
+            {!state.user ? (
+              <Button variant="outline" size="sm" onClick={() => navigate('/login')}>
+                Sign in to sync
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => store.signOut()}>
+                Sign out
+              </Button>
+            )}
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm">
                 <Plus className="w-4 h-4 mr-2" />
                 New Queue
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create New Queue</DialogTitle>
               </DialogHeader>
@@ -56,8 +76,9 @@ export function QueueList() {
                     onKeyDown={(e) => e.key === 'Enter' && handleCreateQueue()}
                   />
                 </div>
-                <div>
-                  <Label>Quick Colors</Label>
+                
+                <div className="pt-4 border-t border-gray-100">
+                  <Label className="mb-2 block">Queue Folder Icon Color</Label>
                   <div className="grid grid-cols-8 gap-2 mt-2">
                     {DEFAULT_QUEUE_COLORS.map((color) => (
                       <button
@@ -72,12 +93,40 @@ export function QueueList() {
                     ))}
                   </div>
                 </div>
-                <ColorPicker
-                  selectedColor={selectedColor}
-                  onColorSelect={setSelectedColor}
-                  label="Or choose from palette"
-                />
-                <Button onClick={handleCreateQueue} className="w-full">
+
+                <div className="pt-4 border-t border-gray-100">
+                  <Label className="mb-2 block">Task Palette (6 Colors)</Label>
+                  <p className="text-xs text-gray-500 mb-3">Tasks in this queue will automatically cycle through these colors.</p>
+                  
+                  <div className="flex gap-2 mb-4">
+                    {palette.map((color, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        className={`w-10 h-10 rounded-md transition-transform border-2 ${
+                          editingColorIndex === index ? 'scale-110 border-gray-400 shadow-md ring-2 ring-offset-1 ring-gray-300' : 'border-transparent'
+                        }`}
+                        style={{ backgroundColor: color }}
+                        onClick={() => setEditingColorIndex(index)}
+                      />
+                    ))}
+                  </div>
+                  
+                  <div className="bg-gray-50 p-3 rounded-lg border">
+                    <ColorPicker
+                      selectedColor={palette[editingColorIndex]}
+                      onColorSelect={(newColor) => {
+                        if (!newColor) return;
+                        const newPalette = [...palette];
+                        newPalette[editingColorIndex] = newColor;
+                        setPalette(newPalette);
+                      }}
+                      label={`Change Color ${editingColorIndex + 1}`}
+                    />
+                  </div>
+                </div>
+
+                <Button onClick={handleCreateQueue} className="w-full mt-4">
                   Create Queue
                 </Button>
               </div>
@@ -86,7 +135,6 @@ export function QueueList() {
         </div>
       </div>
 
-      {/* Queue Grid */}
       <div className="flex-1 overflow-auto p-6">
         {mainQueues.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center text-gray-500">

@@ -1,8 +1,8 @@
-import { useState, useRef } from 'react';
-import { X, Heart, RotateCcw } from 'lucide-react';
-import { motion, useMotionValue, useTransform, PanInfo } from 'motion/react';
+import { useState, useEffect } from 'react';
+import { Trophy, ArrowLeft } from 'lucide-react';
 import { Task } from '../types';
 import { Button } from './ui/button';
+import { Progress } from './ui/progress';
 
 interface SwipeViewProps {
   tasks: Task[];
@@ -12,93 +12,47 @@ interface SwipeViewProps {
 }
 
 export function SwipeView({ tasks, queueId, onComplete, onCancel }: SwipeViewProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [highPriorityTasks, setHighPriorityTasks] = useState<Task[]>([]);
-  const [lowPriorityTasks, setLowPriorityTasks] = useState<Task[]>([]);
-  const [direction, setDirection] = useState<'left' | 'right' | null>(null);
+  // Binary Insertion Sort State
+  const [sortedTasks, setSortedTasks] = useState<Task[]>([]);
+  const [unsortedTasks, setUnsortedTasks] = useState<Task[]>([]);
+  const [currentItem, setCurrentItem] = useState<Task | null>(null);
 
-  const x = useMotionValue(0);
-  const rotate = useTransform(x, [-200, 200], [-25, 25]);
-  const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]);
+  // Binary Search Bounds
+  const [low, setLow] = useState(0);
+  const [high, setHigh] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
 
-  const currentTask = tasks[currentIndex];
-  const isComplete = currentIndex >= tasks.length;
-
-  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    const threshold = 100;
-    
-    if (Math.abs(info.offset.x) > threshold) {
-      if (info.offset.x > 0) {
-        // Swiped right - high priority
-        setHighPriorityTasks([...highPriorityTasks, currentTask]);
-        setDirection('right');
-      } else {
-        // Swiped left - low priority
-        setLowPriorityTasks([...lowPriorityTasks, currentTask]);
-        setDirection('left');
-      }
-      
-      setTimeout(() => {
-        setCurrentIndex(currentIndex + 1);
-        x.set(0);
-        setDirection(null);
-      }, 200);
+  useEffect(() => {
+    if (tasks.length > 1) {
+      // Start with the first item sorted, everything else unsorted
+      setSortedTasks([tasks[0]]);
+      setUnsortedTasks(tasks.slice(1));
+      setCurrentItem(tasks[1]);
+      setLow(0);
+      setHigh(0);
     } else {
-      x.set(0);
+      setIsComplete(true);
     }
-  };
-
-  const handleSwipe = (isHighPriority: boolean) => {
-    if (isHighPriority) {
-      setHighPriorityTasks([...highPriorityTasks, currentTask]);
-      setDirection('right');
-      x.set(300);
-    } else {
-      setLowPriorityTasks([...lowPriorityTasks, currentTask]);
-      setDirection('left');
-      x.set(-300);
-    }
-    
-    setTimeout(() => {
-      setCurrentIndex(currentIndex + 1);
-      x.set(0);
-      setDirection(null);
-    }, 200);
-  };
-
-  const handleUndo = () => {
-    if (currentIndex > 0) {
-      const previousTask = tasks[currentIndex - 1];
-      
-      // Remove from high or low priority
-      setHighPriorityTasks(highPriorityTasks.filter(t => t.id !== previousTask.id));
-      setLowPriorityTasks(lowPriorityTasks.filter(t => t.id !== previousTask.id));
-      
-      setCurrentIndex(currentIndex - 1);
-      x.set(0);
-    }
-  };
+  }, [tasks]);
 
   const handleFinish = () => {
-    const orderedTasks = [...highPriorityTasks, ...lowPriorityTasks];
-    onComplete(orderedTasks);
+    onComplete(sortedTasks);
   };
 
   if (isComplete) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-6">
         <div className="text-center max-w-md">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Heart className="w-10 h-10 text-green-600" />
+          <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Trophy className="w-10 h-10 text-yellow-600" />
           </div>
-          <h2 className="text-2xl font-semibold mb-2">All Done!</h2>
+          <h2 className="text-2xl font-semibold mb-2">Prioritization Complete!</h2>
           <p className="text-gray-600 mb-6">
-            You've prioritized all {tasks.length} tasks. 
-            {highPriorityTasks.length} high priority, {lowPriorityTasks.length} low priority.
+            You've successfully ranked all {tasks.length} tasks via pairwise comparison.
           </p>
           <div className="flex gap-3 justify-center">
             <Button variant="outline" onClick={onCancel}>
-              Cancel
+              Discard
             </Button>
             <Button onClick={handleFinish}>
               Apply Order
@@ -109,102 +63,103 @@ export function SwipeView({ tasks, queueId, onComplete, onCancel }: SwipeViewPro
     );
   }
 
+  if (!currentItem) return null;
+
+  const mid = Math.floor((low + high) / 2);
+  const compareItem = sortedTasks[mid];
+
+  const handleChoice = (winner: 'current' | 'compare') => {
+    let newLow = low;
+    let newHigh = high;
+
+    // If current is higher priority, it belongs at a lower index (shift bounds left)
+    if (winner === 'current') {
+      newHigh = mid - 1;
+    } else {
+      newLow = mid + 1;
+    }
+
+    if (newLow > newHigh) {
+      // Found the exact insertion point
+      const newSorted = [...sortedTasks];
+      newSorted.splice(newLow, 0, currentItem);
+      setSortedTasks(newSorted);
+
+      const newUnsorted = unsortedTasks.slice(1);
+      setUnsortedTasks(newUnsorted);
+
+      if (newUnsorted.length > 0) {
+        // Reset bounds for the next unsorted item
+        setCurrentItem(newUnsorted[0]);
+        setLow(0);
+        setHigh(newSorted.length - 1);
+      } else {
+        setIsComplete(true);
+      }
+    } else {
+      // Continue searching with new bounds
+      setLow(newLow);
+      setHigh(newHigh);
+    }
+  };
+
+  const progress = ((tasks.length - unsortedTasks.length) / tasks.length) * 100;
+
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-purple-50 to-blue-50">
-      {/* Header */}
-      <div className="p-4 flex items-center justify-between border-b bg-white/80 backdrop-blur">
-        <div>
-          <p className="text-sm text-gray-600">
-            {currentIndex + 1} / {tasks.length}
-          </p>
-          <p className="text-xs text-gray-500 mt-1">
-            High: {highPriorityTasks.length} | Low: {lowPriorityTasks.length}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={handleUndo} disabled={currentIndex === 0}>
-            <RotateCcw className="w-4 h-4 mr-2" />
-            Undo
-          </Button>
+    <div className="flex flex-col h-full bg-gray-50">
+      <div className="p-4 flex flex-col gap-4 border-b bg-white">
+        <div className="flex items-center justify-between">
           <Button variant="ghost" size="sm" onClick={onCancel}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
             Exit
           </Button>
+          <span className="text-sm text-gray-500 font-medium">
+            Ranking Task {tasks.length - unsortedTasks.length + 1} of {tasks.length}
+          </span>
         </div>
+        <Progress value={progress} className="h-2" />
       </div>
 
-      {/* Swipe Area */}
-      <div className="flex-1 flex items-center justify-center p-6 overflow-hidden">
-        <div className="relative w-full max-w-md h-96">
-          {/* Instructions */}
-          <div className="absolute -top-16 left-0 right-0 text-center">
-            <p className="text-sm text-gray-600">
-              Swipe right for high priority, left for low priority
-            </p>
+      <div className="flex-1 flex flex-col items-center justify-center p-6 gap-8 overflow-hidden max-w-2xl mx-auto w-full">
+        <h2 className="text-xl font-medium text-gray-700 text-center">Which is higher priority?</h2>
+        
+        <div className="flex flex-col md:flex-row gap-6 w-full h-[50vh] min-h-[300px]">
+          {/* Current Item Button */}
+          <button 
+            onClick={() => handleChoice('current')}
+            className="flex-1 bg-white rounded-2xl shadow-sm border-2 border-gray-200 hover:border-blue-500 hover:shadow-md transition-all p-8 flex flex-col items-center justify-center gap-4 group"
+          >
+            <h3 className="text-2xl font-semibold text-center group-hover:text-blue-600 transition-colors">
+              {currentItem.title}
+            </h3>
+            {currentItem.description && (
+              <p className="text-gray-500 text-center line-clamp-3">
+                {currentItem.description}
+              </p>
+            )}
+          </button>
+
+          <div className="flex items-center justify-center md:flex-col gap-2">
+            <div className="w-px h-12 md:w-12 md:h-px bg-gray-300" />
+            <span className="text-gray-400 font-medium text-sm uppercase tracking-widest">OR</span>
+            <div className="w-px h-12 md:w-12 md:h-px bg-gray-300" />
           </div>
 
-          {/* Card Stack */}
-          <motion.div
-            className="absolute inset-0"
-            style={{ x, rotate, opacity }}
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            onDragEnd={handleDragEnd}
+          {/* Compare Item Button */}
+          <button 
+            onClick={() => handleChoice('compare')}
+            className="flex-1 bg-white rounded-2xl shadow-sm border-2 border-gray-200 hover:border-blue-500 hover:shadow-md transition-all p-8 flex flex-col items-center justify-center gap-4 group"
           >
-            <div className="w-full h-full bg-white rounded-2xl shadow-xl p-8 flex flex-col items-center justify-center border-2 border-gray-200">
-              <h3 className="text-2xl font-semibold text-center mb-4">
-                {currentTask.title}
-              </h3>
-              {currentTask.description && (
-                <p className="text-gray-600 text-center">
-                  {currentTask.description}
-                </p>
-              )}
-            </div>
-
-            {/* Swipe Indicators */}
-            <div 
-              className={`absolute top-8 left-8 px-4 py-2 border-4 border-red-500 text-red-500 rounded-lg font-bold text-xl rotate-[-25deg] transition-opacity ${
-                direction === 'left' ? 'opacity-100' : 'opacity-0'
-              }`}
-            >
-              LOW
-            </div>
-            <div 
-              className={`absolute top-8 right-8 px-4 py-2 border-4 border-green-500 text-green-500 rounded-lg font-bold text-xl rotate-[25deg] transition-opacity ${
-                direction === 'right' ? 'opacity-100' : 'opacity-0'
-              }`}
-            >
-              HIGH
-            </div>
-          </motion.div>
-
-          {/* Next card preview */}
-          {currentIndex + 1 < tasks.length && (
-            <div className="absolute inset-0 -z-10 scale-95 opacity-50">
-              <div className="w-full h-full bg-white rounded-2xl shadow-xl border-2 border-gray-200" />
-            </div>
-          )}
+            <h3 className="text-2xl font-semibold text-center group-hover:text-blue-600 transition-colors">
+              {compareItem.title}
+            </h3>
+            {compareItem.description && (
+              <p className="text-gray-500 text-center line-clamp-3">
+                {compareItem.description}
+              </p>
+            )}
+          </button>
         </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="p-6 flex gap-4 justify-center bg-white/80 backdrop-blur border-t">
-        <Button
-          variant="outline"
-          size="lg"
-          className="w-16 h-16 rounded-full border-2 border-red-500 text-red-500 hover:bg-red-50"
-          onClick={() => handleSwipe(false)}
-        >
-          <X className="w-6 h-6" />
-        </Button>
-        <Button
-          variant="outline"
-          size="lg"
-          className="w-16 h-16 rounded-full border-2 border-green-500 text-green-500 hover:bg-green-50"
-          onClick={() => handleSwipe(true)}
-        >
-          <Heart className="w-6 h-6" />
-        </Button>
       </div>
     </div>
   );
