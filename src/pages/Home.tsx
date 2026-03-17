@@ -27,7 +27,7 @@ type TapeItem = {
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Home', icon: '/assets/home.svg', path: '/', x: 313.6, y: 194.5, w: 152.1, h: 171.2 },
+  { label: 'Home', icon: '/assets/home.svg', path: '/', x: 316.1, y: 194.5, w: 152.1, h: 171.2 },
   { label: 'Links', icon: '/assets/links.svg', path: '/links', x: 316.1, y: 392.5, w: 141.8, h: 152.9 },
   { label: 'About', icon: '/assets/about.svg', path: '/about', x: 510, y: 199.6, w: 141.8, h: 159.5 },
   { label: 'Resume', icon: '/assets/resume.svg', path: '/resume', x: 511.8, y: 392.5, w: 141.8, h: 149.2 },
