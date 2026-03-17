@@ -1,8 +1,12 @@
 {
   "rewrites": [
     {
+      "source": "/prioritize",
+      "destination": "/ptz/index.html"
+    },
+    {
       "source": "/prioritize/:path*",
-      "destination": "/prioritize/index.html"
+      "destination": "/ptz/index.html"
     }
   ]
 }
