@@ -5,7 +5,10 @@ import { BrowserRouter, Routes, Route } from "react-router";
 import { Home } from "./pages/Home";
 import { Links } from "./pages/Links";
 import { About } from "./pages/About";
-import { Resume } from "./pages/Resume"; // <-- THIS IS THE LINE THAT FIXES YOUR ERROR
+import { Resume } from "./pages/Resume";
+import { Projects } from "./pages/Projects";
+import { Research } from "./pages/Research";
+import { Contact } from "./pages/Contact";
 
 import "./styles/index.css";
 
@@ -17,8 +20,10 @@ if (rootElement) {
         <Route path="/" element={<Home />} />
         <Route path="/links" element={<Links />} />
         <Route path="/about" element={<About />} />
-        {/* 2. Your Resume route */}
         <Route path="/resume" element={<Resume />} /> 
+        <Route path="/projects" element={<Projects />} />
+        <Route path="/research" element={<Research />} />
+        <Route path="/contact" element={<Contact />} />
       </Routes>
     </BrowserRouter>
   );
