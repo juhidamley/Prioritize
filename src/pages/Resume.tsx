@@ -28,7 +28,7 @@ export function Resume() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-b from-blue-600 to-purple-600 rounded-full blur-[120px] opacity-20 pointer-events-none" />
 
       {/* Changed to Acrobat Reader style */}
-      <RetroWindow title="resume.pdf - Acrobat Reader 3.0" icon="📄" className="w-full max-w-5xl h-[90vh] z-10">
+      <RetroWindow title="resume.pdf - Acrobat Reader 3.0" icon="📄" className="w-full max-w-6xl h-[90vh] z-10">
         
         {/* Action Toolbar */}
         <div className="flex gap-2 px-2 py-2 border-b-2 border-gray-500 bg-[#c0c0c0] shrink-0">
