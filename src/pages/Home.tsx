@@ -32,7 +32,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'About', icon: '/assets/about.svg', path: '/about', x: 510, y: 199.6, w: 141.8, h: 159.5 },
   { label: 'Resume', icon: '/assets/resume.svg', path: '/resume', x: 511.8, y: 392.5, w: 141.8, h: 149.2 },
   { label: 'Contact', icon: '/assets/contact.svg', path: '/contact', x:  707.2, y: 233, w: 141.8, h: 126.1 },
-  { label: 'Prioritize', icon: '/assets/prioritize.svg', path: '/prioritize', x: 707.2, y: 392.5, w: 141.8, h: 149.2 },
+  { label: 'Prioritize', icon: '/assets/prioritize.svg', path: '/prioritize/', x: 707.2, y: 392.5, w: 141.8, h: 149.2 },
   { label: 'Projects', icon: '/assets/projects.svg', path: '/projects', x: 878.4, y: 195.3, w: 141.8, h: 163.8 },
   { label: 'Research', icon: '/assets/research.svg', path: '/research', x: 878.4, y: 392.5, w: 141.8, h: 149.2 },
 ];
@@ -73,17 +73,24 @@ export function Home() {
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 md:block w-full max-w-lg md:max-w-none mx-auto py-12 md:py-0">
           
           {NAV_ITEMS.map((item) => (
-            <button
-              key={item.label}
-              onClick={() => {
-                if (item.path === '/prioritize') {
-                  window.location.href = '/prioritize/'; 
-                } else if (item.path.endsWith('.pdf')) {
-                  window.open(item.path, '_blank', 'noopener,noreferrer');
-                } else {
-                  navigate(item.path);
-                }
-              }}
+  <button
+    key={item.label}
+    onClick={() => {
+  if (item.label === 'Prioritize') {
+    // A hard 'replace' clears the current React state 
+    // and forces the browser to load the new index.html
+    window.location.replace('/prioritize/');
+    return;
+  }
+  
+  if (item.path.endsWith('.pdf')) {
+    window.open(item.path, '_blank', 'noopener,noreferrer');
+    return;
+  }
+
+  navigate(item.path);
+}}
+    // ... keep your styling
               // Magic trick: We pass your calculations as CSS variables
               style={{
                 '--desk-x': scaledX(item.x),
