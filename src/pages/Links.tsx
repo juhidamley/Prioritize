@@ -54,7 +54,7 @@ export function Links() {
           </div>
           
           <h2 className="text-black font-bold text-lg mb-1">Juhi Damley</h2>
-          <p className="text-[#808080] text-sm mb-6 font-semibold">System Analyst // Creator</p>
+          <p className="text-[#808080] text-sm mb-6 font-semibold">Computer Science Student</p>
 
           {/* Buttons Area */}
           <div className="w-full flex flex-col gap-3">
