@@ -53,50 +53,71 @@ export function Home() {
   const navigate = useNavigate();
 
   const toPxNumber = (value: PxValue) =>
-    typeof value === 'number' ? value : Number.parseFloat(value);
+    typeof value === 'number' ? value : Number.parseFloat(value as string);
 
   const scaledX = (value: PxValue) => `${(toPxNumber(value) / DESIGN_WIDTH) * 100}vw`;
   const scaledY = (value: PxValue) => `${(toPxNumber(value) / DESIGN_HEIGHT) * 100}vh`;
 
   return (
     <div
-      className="fixed inset-0 h-dvh w-screen bg-[#1a0b2e] bg-[url('/assets/landing.png')] bg-cover bg-center overflow-hidden"
+      // Mobile: Solid purple background. Desktop: landing.png image.
+      className="relative md:fixed inset-0 min-h-dvh md:h-dvh w-screen bg-[#1a0b2e] md:bg-[url('/assets/landing.png')] md:bg-cover md:bg-center overflow-x-hidden overflow-y-auto md:overflow-hidden"
     >
       {/* Background Glow */}
       <div className="absolute inset-0 bg-radial-gradient from-purple-600/10 to-transparent pointer-events-none" />
 
-      {/* Absolute icon layout controlled by x/y/w/h on each item */}
-      <div className="absolute inset-0 z-10">
-        {NAV_ITEMS.map((item) => (
-          <button
-            key={item.label}
-            onClick={() => {
-              if (item.path === '/prioritize') {
-                window.location.href = '/prioritize/'; 
-              } else {
-                navigate(item.path);
-              }
-            }}
-            className="absolute flex flex-col items-center group transition-all duration-300 hover:scale-110 active:scale-95"
-            style={{ left: scaledX(item.x), top: scaledY(item.y) }}
-          >
-            <div
-              className="flex items-center justify-center mb-3"
-              style={{ width: scaledX(item.w), height: scaledY(item.h) }}
+      {/* Main Layout Container */}
+      <div className="relative z-10 w-full min-h-full flex flex-col items-center justify-center p-6 md:p-0 md:block">
+        
+        {/* The Grid on Mobile, Invisible wrapper on Desktop */}
+        <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 md:block w-full max-w-lg md:max-w-none mx-auto py-12 md:py-0">
+          
+          {NAV_ITEMS.map((item) => (
+            <button
+              key={item.label}
+              onClick={() => {
+                if (item.path === '/prioritize') {
+                  window.location.href = '/prioritize/'; 
+                } else if (item.path.endsWith('.pdf')) {
+                  window.open(item.path, '_blank', 'noopener,noreferrer');
+                } else {
+                  navigate(item.path);
+                }
+              }}
+              // Magic trick: We pass your calculations as CSS variables
+              style={{
+                '--desk-x': scaledX(item.x),
+                '--desk-y': scaledY(item.y),
+                '--desk-w': scaledX(item.w),
+                '--desk-h': scaledY(item.h),
+              } as React.CSSProperties}
+              className="
+                relative md:absolute 
+                md:left-[var(--desk-x)] md:top-[var(--desk-y)]
+                flex flex-col items-center justify-center group 
+                transition-all duration-300 hover:scale-110 active:scale-95
+                w-full aspect-square md:w-auto md:aspect-auto
+              "
             >
-              <img 
-                src={item.icon} 
-                alt={item.label} 
-                className="w-full h-full object-contain mix-blend-multiply drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]" 
-              />
-            </div>
-          </button>
-        ))}
+              <div
+                // Mobile: fills grid cell. Desktop: uses calculated w/h
+                className="flex items-center justify-center w-full h-full md:w-[var(--desk-w)] md:h-[var(--desk-h)]"
+              >
+                <img 
+                  src={item.icon} 
+                  alt={item.label} 
+                  className="w-full h-full object-contain mix-blend-multiply drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]" 
+                />
+              </div>
+            </button>
+          ))}
+
+        </div>
       </div>
 
-      {/* Absolute tape layout controlled by x/y/w/h on each item */}
+      {/* Desktop Tapes (Hidden on mobile to save screen real estate) */}
       {SHOW_TAPES && (
-        <div className="absolute inset-0 z-20 pointer-events-none">
+        <div className="hidden md:block absolute inset-0 z-20 pointer-events-none">
           {TAPE_ITEMS.map((item) => (
             <img
               key={`${item.src}-${item.x}-${item.y}`}
