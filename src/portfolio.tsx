@@ -9,6 +9,8 @@ import { Resume } from "./pages/Resume";
 import { Projects } from "./pages/Projects";
 import { Research } from "./pages/Research";
 import { Contact } from "./pages/Contact";
+import { StudyTools } from "./pages/StudyTools";
+import { Pomodoro } from "./pages/studyTools/Pomodoro";
 
 import "./styles/index.css";
 
@@ -24,6 +26,8 @@ if (rootElement) {
         <Route path="/projects" element={<Projects />} />
         <Route path="/research" element={<Research />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/studyTools" element={<StudyTools />} />
+        <Route path="/pomodoro" element={<Pomodoro />} />
       </Routes>
     </BrowserRouter>
   );

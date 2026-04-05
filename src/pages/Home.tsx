@@ -29,6 +29,7 @@ type TapeItem = {
 const NAV_ITEMS: NavItem[] = [
   { label: 'Home', icon: '/assets/home.svg', path: '/', x: 316.1, y: 194.5, w: 152.1, h: 171.2 },
   { label: 'Links', icon: '/assets/links.svg', path: '/links', x: 316.1, y: 392.5, w: 141.8, h: 152.9 },
+  { label: 'Study', icon: '/assets/study.svg', path: '/studyTools', x: 316.1, y: 560, w: 141.8, h: 149.2 },
   { label: 'About', icon: '/assets/about.svg', path: '/about', x: 510, y: 199.6, w: 141.8, h: 159.5 },
   { label: 'Resume', icon: '/assets/resume.svg', path: '/resume', x: 511.8, y: 392.5, w: 141.8, h: 149.2 },
   { label: 'Contact', icon: '/assets/contact.svg', path: '/contact', x:  707.2, y: 233, w: 141.8, h: 126.1 },
@@ -61,7 +62,7 @@ export function Home() {
   return (
     <div
       // Mobile: Solid purple background. Desktop: landing.png image.
-      className="relative md:fixed inset-0 min-h-dvh md:h-dvh w-screen bg-[#1a0b2e] md:bg-[url('/assets/landing.png')] md:bg-cover md:bg-center overflow-x-hidden overflow-y-auto md:overflow-hidden"
+      className="relative md:fixed inset-0 min-h-dvh md:h-dvh w-screen bg-[#1a0b2e] md:bg-[url('/assets/landing.svg')] md:bg-cover md:bg-center overflow-x-hidden overflow-y-auto md:overflow-hidden"
     >
       {/* Background Glow */}
       <div className="absolute inset-0 bg-radial-gradient from-purple-600/10 to-transparent pointer-events-none" />
