@@ -36,14 +36,29 @@ const RetroButton = ({ onClick, children, active = false, className = '' }: { on
 
 export function Pomodoro() {
   const navigate = useNavigate();
-  
-  const WORK_TIME = 25 * 60;
-  const BREAK_TIME = 5 * 60;
-  
-  const [timeLeft, setTimeLeft] = useState(WORK_TIME);
+
+  const [workMinutes, setWorkMinutes] = useState(25);
+  const [breakMinutes, setBreakMinutes] = useState(5);
+  const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [mode, setMode] = useState<'WORK' | 'BREAK'>('WORK');
   const [cycles, setCycles] = useState(0);
+
+  const workTimeSeconds = workMinutes * 60;
+  const breakTimeSeconds = breakMinutes * 60;
+
+  const clampMinutes = (value: string) => {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isNaN(parsed)) return 1;
+    return Math.min(180, Math.max(1, parsed));
+  };
+
+  useEffect(() => {
+    // Keep previewed countdown in sync with selected mode whenever timer is idle.
+    if (!isRunning) {
+      setTimeLeft(mode === 'WORK' ? workTimeSeconds : breakTimeSeconds);
+    }
+  }, [workTimeSeconds, breakTimeSeconds, mode, isRunning]);
 
   useEffect(() => {
     let interval: number | undefined;
@@ -58,33 +73,33 @@ export function Pomodoro() {
       
       if (mode === 'WORK') {
         setMode('BREAK');
-        setTimeLeft(BREAK_TIME);
+        setTimeLeft(breakTimeSeconds);
         setCycles(c => c + 1);
       } else {
         setMode('WORK');
-        setTimeLeft(WORK_TIME);
+        setTimeLeft(workTimeSeconds);
       }
       setIsRunning(false);
     }
     return () => clearInterval(interval);
-  }, [isRunning, timeLeft, mode]);
+  }, [isRunning, timeLeft, mode, workTimeSeconds, breakTimeSeconds]);
 
   const toggleTimer = () => setIsRunning(!isRunning);
   
   const resetTimer = () => {
     setIsRunning(false);
-    setTimeLeft(mode === 'WORK' ? WORK_TIME : BREAK_TIME);
+    setTimeLeft(mode === 'WORK' ? workTimeSeconds : breakTimeSeconds);
   };
 
   const setModeManually = (newMode: 'WORK' | 'BREAK') => {
     setMode(newMode);
     setIsRunning(false);
-    setTimeLeft(newMode === 'WORK' ? WORK_TIME : BREAK_TIME);
+    setTimeLeft(newMode === 'WORK' ? workTimeSeconds : breakTimeSeconds);
   };
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
-  const totalModeTime = mode === 'WORK' ? WORK_TIME : BREAK_TIME;
+  const totalModeTime = mode === 'WORK' ? workTimeSeconds : breakTimeSeconds;
   const progressPercent = ((totalModeTime - timeLeft) / totalModeTime) * 100;
 
   return (
@@ -125,6 +140,32 @@ export function Pomodoro() {
           <RetroButton active={mode === 'BREAK'} onClick={() => setModeManually('BREAK')}>
             Short Break
           </RetroButton>
+        </div>
+
+        {/* Editable Session Durations */}
+        <div className="grid grid-cols-2 gap-2 mb-4 text-xs md:text-sm">
+          <label className="flex flex-col gap-1 font-bold text-gray-800">
+            Work (min)
+            <input
+              type="number"
+              min={1}
+              max={180}
+              value={workMinutes}
+              onChange={(e) => setWorkMinutes(clampMinutes(e.target.value))}
+              className="bg-white border-2 border-t-gray-500 border-l-gray-500 border-b-white border-r-white px-2 py-1 font-mono"
+            />
+          </label>
+          <label className="flex flex-col gap-1 font-bold text-gray-800">
+            Break (min)
+            <input
+              type="number"
+              min={1}
+              max={180}
+              value={breakMinutes}
+              onChange={(e) => setBreakMinutes(clampMinutes(e.target.value))}
+              className="bg-white border-2 border-t-gray-500 border-l-gray-500 border-b-white border-r-white px-2 py-1 font-mono"
+            />
+          </label>
         </div>
 
         {/* Controls */}
