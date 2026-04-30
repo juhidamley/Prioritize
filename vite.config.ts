@@ -1,25 +1,17 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+import { resolve } from 'path';
 
 export default defineConfig({
-  base: '/', 
-  plugins: [react(), tailwindcss()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
+  plugins: [react()],
   build: {
     rollupOptions: {
       input: {
-        main: path.resolve(__dirname, 'index.html'), 
-        prioritize: path.resolve(__dirname, 'ptz/index.html'), 
-      },
-    },
-  },
+        // 1. Your main portfolio entry point
+        main: resolve(__dirname, 'index.html'), 
+        // 2. Your Prioritize app entry point
+        prioritize: resolve(__dirname, 'prioritize/index.html') 
+      }
+    }
+  }
 });
