@@ -81,7 +81,8 @@ export function Home() {
                 if (item.path === '/prioritize') {
                   window.location.href = '/prioritize/';
                 } else if (item.path === '/lecturetex') {
-                  window.location.href = '/lecturetex';
+                  // Redirect to the new subdomain instead of an internal route
+                  window.location.href = 'https://lecturetex.juhi.studio'; 
                 } else if (item.path.endsWith('.pdf')) {
                   window.open(item.path, '_blank', 'noopener,noreferrer');
                 } else {

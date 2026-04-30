@@ -1,8 +1,13 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/lecturetex/(.*)", "destination": "/lecturetex/$1" },
-    { "source": "/prioritize/(.*)", "destination": "/prioritize/index.html" },
-    { "source": "/((?!lecturetex|prioritize).*)", "destination": "/index.html" }
+    {
+      "source": "/prioritize/(.*)",
+      "destination": "/prioritize/index.html"
+    },
+    {
+      "source": "/((?!prioritize).*)",
+      "destination": "/index.html"
+    }
   ]
 }
