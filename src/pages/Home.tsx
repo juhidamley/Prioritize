@@ -79,7 +79,9 @@ export function Home() {
               key={item.label}
               onClick={() => {
                 if (item.path === '/prioritize') {
-                  window.location.href = '/prioritize/'; 
+                  window.location.href = '/prioritize/';
+                } else if (item.path === '/lecturetex') {
+                  window.location.href = '/lecturetex';
                 } else if (item.path.endsWith('.pdf')) {
                   window.open(item.path, '_blank', 'noopener,noreferrer');
                 } else {
