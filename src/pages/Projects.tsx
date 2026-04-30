@@ -4,6 +4,15 @@ import { useState, ReactNode } from 'react';
 // Your Project Data
 const PROJECTS = [
   {
+  id: 'lectureTex',
+  file: 'lecturetex.py',
+  title: 'LectureTex',
+  tech: 'Python, FastAPI, Modal, Whisper, Claude AI, LaTeX, React, Electron, Vercel',
+  desc: 'End-to-end pipeline that converts lecture audio and video into publication-quality LaTeX notes with a compiled PDF. Audio is transcribed using OpenAI Whisper on an A100 GPU via Modal, then Claude generates subject-aware structured notes — handling mathematical notation, theorem formatting, and proof structure automatically. Features an AI-driven LaTeX repair loop that parses compile errors and self-corrects the source before retrying. Deployed as both a Vercel web app and an Electron desktop app, backed by a FastAPI job server on DigitalOcean that manages the async GPU pipeline.',
+  icon: '🎓',
+  link: '/lecturetex/'
+  },
+  {
     id: 'prioritize',
     file: 'prioritize.exe',
     title: 'Prioritize (Queue Management)',
@@ -75,15 +84,6 @@ const PROJECTS = [
     icon: '🎵',
     link: "https://github.com/juhidamley/spotify-stats"
   },
-  {
-    id: 'notetaker',
-    file: 'ai_math_notetaker.py',
-    title: 'AI Math Notetaker',
-    tech: 'Python, LaTeX',
-    desc: 'Currently exploring an AI-powered notetaking tool optimized for mathematics. Designed to integrate natively with VS Code and output perfectly formatted LaTeX.',
-    icon: '🤖',
-    link: null
-  },
 ];
 
 // Reusable Retro Window
@@ -106,11 +106,11 @@ const RetroWindow = ({ title, icon, children, className = '' }: { title: string,
 
 export function Projects() {
   const navigate = useNavigate();
-  // State to track which project is currently clicked
   const [activeProject, setActiveProject] = useState(PROJECTS[0]);
 
   return (
-    <div className="min-h-screen w-full bg-[#0a001a] bg-[linear-gradient(transparent_95%,rgba(255,0,255,0.3)_100%),linear-gradient(90deg,transparent_95%,rgba(255,0,255,0.3)_100%)] bg-[length:40px_40px] flex items-center justify-center p-4 md:p-8 relative font-sans">
+    // REMOVED bg-[#0a001a] so fractal shows through the grid
+    <div className="min-h-screen w-full bg-[linear-gradient(transparent_95%,rgba(255,0,255,0.3)_100%),linear-gradient(90deg,transparent_95%,rgba(255,0,255,0.3)_100%)] bg-[length:40px_40px] flex items-center justify-center p-4 md:p-8 relative font-sans">
       
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-b from-purple-600 to-pink-600 rounded-full blur-[120px] opacity-20 pointer-events-none" />
 
@@ -135,7 +135,6 @@ export function Projects() {
               <button
                 key={project.id}
                 onClick={() => setActiveProject(project)}
-                // Highlights the button blue if it is the active project
                 className={`flex items-center gap-2 px-2 py-1 text-sm text-left w-full transition-none ${
                   activeProject.id === project.id 
                     ? 'bg-[#000080] text-white border border-dotted border-white' 
