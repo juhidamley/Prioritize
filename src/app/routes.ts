@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router';
 import { QueueList } from './components/QueueList';
 import { QueueView } from './components/QueueView';
 import { Login } from './components/Login'; // Import Login
+import Hero from '../pages/Hero';
 
 export const router = createBrowserRouter([
   {
@@ -16,6 +17,8 @@ export const router = createBrowserRouter([
     path: '/login',
     Component: Login,
   },
-], {
-  basename: '/prioritize',
-});
+  {
+    path: '/hero',
+    Component: Hero,
+  },
+]);

@@ -12,6 +12,7 @@ import { Research } from "./pages/Research";
 import { Contact } from "./pages/Contact";
 import { StudyTools } from "./pages/StudyTools";
 import { Pomodoro } from "./pages/studyTools/Pomodoro";
+import Hero from "./pages/Hero";
 
 import "./styles/index.css";
 
@@ -30,6 +31,7 @@ if (rootElement) {
           <Route path="/contact" element={<Contact />} />
           <Route path="/studyTools" element={<StudyTools />} />
           <Route path="/pomodoro" element={<Pomodoro />} />
+          <Route path="/hero" element={<Hero />} />
         </Routes>
       </BrowserRouter>
       <Analytics />
