@@ -134,10 +134,10 @@ export default function Hero() {
         <h1
           className="text-4xl md:text-6xl lg:text-8xl tracking-widest"
             style={{
-              fontFamily: "'Bitcount Prop Single', 'Sixtyfour Convergence', 'Press Start 2P', Courier, monospace",
-              color: '#FF2D95',
+              fontFamily: "Times New Roman, serif",
+              color: '#FFFFFF',
               WebkitTextStroke: '1px rgba(0,0,0,0.25)',
-              textShadow: '0 0 16px rgba(255,45,149,0.6), 0 8px 32px rgba(0,0,0,0.6)'
+              textShadow: '0 0 16px rgba(000,000,000,0.6), 0 8px 32px rgba(0,0,0,0.6)'
           }}
         >
           Juhi Damley
