@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { RouterProvider } from 'react-router';
 import { router } from './routes';
 import { useStore } from './hooks/useStore';
+import MandelbrotBackground from './MandelbrotBackground'; // <-- Import the background
 
 export function App() {
   const { state, store } = useStore();
@@ -29,9 +30,23 @@ export function App() {
   }, [store]);
 
   if (state.isLoading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    return (
+      <>
+        <MandelbrotBackground /> {/* Optional: show background while loading */}
+        <div className="flex items-center justify-center h-screen text-white relative z-10 font-mono text-xl tracking-widest">
+          Loading...
+        </div>
+      </>
+    );
   }
 
-  // Removed the "if (!state.user) return <Login />" block entirely
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      {/* Global Background stays completely fixed behind everything */}
+      <MandelbrotBackground />
+      
+      {/* Router handles all your page content on top */}
+      <RouterProvider router={router} />
+    </>
+  );
 }
