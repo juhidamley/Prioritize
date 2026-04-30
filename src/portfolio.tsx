@@ -2,7 +2,6 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router";
 import { Analytics } from "@vercel/analytics/react";
 
-// 1. Make sure ALL of these imports are present and use { brackets }
 import { Home } from "./pages/Home";
 import { Links } from "./pages/Links";
 import { About } from "./pages/About";
@@ -14,24 +13,22 @@ import { StudyTools } from "./pages/StudyTools";
 import { Pomodoro } from "./pages/studyTools/Pomodoro";
 import Hero from "./pages/Hero";
 
-// Import the fractal background! Adjust the path if necessary.
 import MandelbrotBackground from "./app/components/MandelbrotBackground"; 
-
 import "./styles/index.css";
 
 const rootElement = document.getElementById("root");
 if (rootElement) {
   createRoot(rootElement).render(
-    // 1. Solid black base wrapper
-    <div className="relative min-h-screen w-full bg-black text-white">
+    // Force a black base layer container to prevent white bleed-through
+    <div className="relative min-h-screen w-full bg-black overflow-x-hidden">
       
-      {/* 2. Fractal pinned to the back (z-0) */}
+      {/* 1. The fractal is locked to the bottom layer (z-0) */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <MandelbrotBackground />
       </div>
 
-      {/* 3. Your pages render on top (z-10) */}
-      <div className="relative z-10 w-full h-full">
+      {/* 2. Your entire Site Content is forced to the top layer (z-10) */}
+      <div className="relative z-10 w-full min-h-screen">
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
