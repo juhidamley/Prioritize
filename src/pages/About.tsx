@@ -76,9 +76,10 @@ export function About() {
           <div className="w-full h-full border-t-2 border-l-2 border-b-2 border-r-2 border-t-gray-500 border-l-gray-500 border-b-white border-r-white bg-[#ffffe1] p-4 text-black font-sans text-sm md:text-base overflow-y-auto shadow-inner">
             <p className="font-bold mb-2 border-b border-gray-400 pb-1">Current Status</p>
             <ul className="list-disc pl-4 space-y-3 mt-3">
-              <li>Studying CS at Claremont McKenna / Harvey Mudd</li>
-              <li>Building an AI math notetaker for VS Code</li>
-              <li>Listening to Lana Del Rey & Weezer</li>
+              <li>Studying CS at Claremont McKenna via Harvey Mudd</li>
+              <li>I used to study math as well, but dropped the major in favor of flexibility. Some areas I'm taking classes in for fun include engineering, government, pure and applied math, and religious studies.</li>
+              <li>My favorite video game is The Sims 4. I also enjoy otomes and Assassin's Creed.</li>
+              <li>I love cats and other cute animals!</li>
             </ul>
           </div>
         </RetroWindow>
