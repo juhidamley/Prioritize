@@ -96,18 +96,16 @@ export default function MandelbrotBackground() {
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
-
-  return (
-    // We wrap everything in a solid black container fixed to the very back (-z-20)
-    <div className="fixed inset-0 w-full h-full -z-20 bg-black">
+  
+return (
+    // Replaced the negative z-index and fixed positioning with simple absolute positioning
+    <div className="absolute inset-0 w-full h-full">
       
-      {/* The Canvas sits inside, slightly transparent */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full opacity-60"
       />
       
-      {/* Global Background Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-b from-yellow-400 to-pink-600 rounded-full blur-[100px] opacity-20 pointer-events-none" />
     
     </div>
