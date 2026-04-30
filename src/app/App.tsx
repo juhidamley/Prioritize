@@ -1,51 +1,36 @@
 import { useEffect } from 'react';
 import { RouterProvider } from 'react-router';
-import { router } from './routes';
+import { router } from './routes.tsx';
 import { useStore } from './hooks/useStore';
-import MandelbrotBackground from './components/MandelbrotBackground';
+// Import from the components folder
+import MandelbrotBackground from './components/MandelbrotBackground'; 
+
 export function App() {
   const { state, store } = useStore();
 
   useEffect(() => {
     store.initializeAuth();
-
-    let cleanupRealtime: (() => void) | undefined;
-    
-    const unsubscribe = store.subscribe(() => {
-      const currentState = store.getState();
-      
-      if (currentState.user && !cleanupRealtime) {
-        cleanupRealtime = store.subscribeToRealtime();
-      } else if (!currentState.user && cleanupRealtime) {
-        cleanupRealtime();
-        cleanupRealtime = undefined;
-      }
-    });
-
-    return () => {
-      unsubscribe();
-      if (cleanupRealtime) cleanupRealtime();
-    };
+    // ... rest of your auth logic
   }, [store]);
 
   if (state.isLoading) {
-    return (
-      <>
-        <MandelbrotBackground /> {/* Optional: show background while loading */}
-        <div className="flex items-center justify-center h-screen text-white relative z-10 font-mono text-xl tracking-widest">
-          Loading...
-        </div>
-      </>
-    );
+    return <div className="flex items-center justify-center h-screen bg-black text-white font-mono">Loading...</div>;
   }
 
   return (
-    <>
-      {/* Global Background stays completely fixed behind everything */}
-      <MandelbrotBackground />
+    // This container forces the stacking order
+    <div className="relative min-h-screen w-full bg-black">
       
-      {/* Router handles all your page content on top */}
-      <RouterProvider router={router} />
-    </>
+      {/* LAYER 0: The Background (Stays at the bottom) */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <MandelbrotBackground />
+      </div>
+
+      {/* LAYER 10: Your Actual Site (Stays on top) */}
+      <div className="relative z-10 w-full min-h-screen">
+        <RouterProvider router={router} />
+      </div>
+
+    </div>
   );
 }

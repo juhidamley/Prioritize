@@ -4,11 +4,13 @@ import { QueueView } from './components/QueueView';
 import { Login } from './components/Login'; 
 import Hero from '../pages/Hero';
 import { About } from '../pages/About';
-import { RootLayout } from './Layouts'; 
+import { RootLayout } from './Layouts'; // Import the layout that includes the Mandelbrot background
+
+// Make sure to import RootLayout if you put it in a separate file
 
 export const router = createBrowserRouter([
   {
-    // This JSX requires the .tsx extension
+    // The parent route uses the layout
     element: <RootLayout />, 
     children: [
       {
