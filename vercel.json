@@ -14,15 +14,15 @@
     },
     {
       "source": "/lecturetex/api/:path*",
-      "destination": "https://lecturetex-juhidamleys-projects.vercel.app/lecturetex/api/:path*"
-    },
-    {
-      "source": "/lecturetex/:path*",
-      "destination": "https://lecturetex-juhidamleys-projects.vercel.app/lecturetex/:path*"
+      "destination": "/api/lecturetex/:path*"
     },
     {
       "source": "/lecturetex",
-      "destination": "https://lecturetex-juhidamleys-projects.vercel.app/lecturetex"
+      "destination": "/lecturetex/index.html"
+    },
+    {
+      "source": "/lecturetex/",
+      "destination": "/lecturetex/index.html"
     },
     {
       "source": "/((?!.*\\..*).*)",
