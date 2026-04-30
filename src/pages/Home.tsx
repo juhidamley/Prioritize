@@ -36,6 +36,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Prioritize', icon: '/assets/prioritize.svg', path: '/prioritize', x: 707.2, y: 392.5, w: 141.8, h: 149.2 },
   { label: 'Projects', icon: '/assets/projects.svg', path: '/projects', x: 878.4, y: 195.3, w: 141.8, h: 163.8 },
   { label: 'Research', icon: '/assets/research.svg', path: '/research', x: 878.4, y: 392.5, w: 141.8, h: 149.2 },
+  { label: "LectureTeX", icon: '/assets/lectureTex_icon.svg', path: '/lecturetex', x: 511.8, y: 555, w: 141.8, h: 149.2 },
 ];
 
 const TAPE_ITEMS: TapeItem[] = [
