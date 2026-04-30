@@ -2,8 +2,7 @@ import { useEffect } from 'react';
 import { RouterProvider } from 'react-router';
 import { router } from './routes';
 import { useStore } from './hooks/useStore';
-import MandelbrotBackground from './MandelbrotBackground'; // <-- Import the background
-
+import MandelbrotBackground from './components/MandelbrotBackground';
 export function App() {
   const { state, store } = useStore();
 

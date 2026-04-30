@@ -1,31 +1,16 @@
 {
+  "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/prioritize",
-      "destination": "/ptz/index.html"
+      "source": "/lecturetex/(.*)",
+      "destination": "/lecturetex/$1"
     },
     {
-      "source": "/prioritize/",
-      "destination": "/ptz/index.html"
+      "source": "/prioritize/(.*)",
+      "destination": "/prioritize/index.html"
     },
     {
-      "source": "/prioritize/:path*",
-      "destination": "/ptz/index.html"
-    },
-    {
-      "source": "/lecturetex/api/:path*",
-      "destination": "/api/lecturetex/:path*"
-    },
-    {
-      "source": "/lecturetex",
-      "destination": "/lecturetex/index.html"
-    },
-    {
-      "source": "/lecturetex/",
-      "destination": "/lecturetex/index.html"
-    },
-    {
-      "source": "/((?!.*\\..*).*)",
+      "source": "/((?!lecturetex|prioritize).*)",
       "destination": "/index.html"
     }
   ]
