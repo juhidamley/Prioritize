@@ -1,16 +1,19 @@
 {
-  "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/lecturetex/(.*)",
-      "destination": "/lecturetex/$1"
+      "source": "/prioritize",
+      "destination": "/ptz/index.html"
     },
     {
-      "source": "/prioritize/(.*)",
-      "destination": "/prioritize/index.html"
+      "source": "/prioritize/",
+      "destination": "/ptz/index.html"
     },
     {
-      "source": "/((?!lecturetex|prioritize).*)",
+      "source": "/prioritize/:path*",
+      "destination": "/ptz/index.html"
+    },
+    {
+      "source": "/((?!.*\\..*).*)",
       "destination": "/index.html"
     }
   ]
