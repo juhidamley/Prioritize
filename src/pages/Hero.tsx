@@ -122,7 +122,7 @@ export default function Hero() {
   // ── Navigation ───────────────────────────────────────────────────────────
   const go = useCallback((item: typeof NAV_ITEMS[0]) => {
     if (item.path === '/prioritize') { window.location.href = '/prioritize/'; return; }
-    if (item.path === '/lecturetex') { window.location.href = '/lecturetex';  return; }
+    if (item.path === '/lecturetex') { window.location.href = 'https://lecturetex.juhi.studio';  return; }
     navigate(item.path);
   }, [navigate]);
 
