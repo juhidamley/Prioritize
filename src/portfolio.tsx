@@ -31,16 +31,16 @@ if (rootElement) {
       <div className="relative z-10 w-full min-h-screen">
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Hero />} />
             <Route path="/links" element={<Links />} />
             <Route path="/about" element={<About />} />
-            <Route path="/resume" element={<Resume />} /> 
+            <Route path="/resume" element={<Resume />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/research" element={<Research />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/studyTools" element={<StudyTools />} />
             <Route path="/pomodoro" element={<Pomodoro />} />
-            <Route path="/hero" element={<Hero />} />
+            <Route path="/home" element={<Home />} />
           </Routes>
         </BrowserRouter>
         <Analytics />
