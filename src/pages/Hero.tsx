@@ -19,7 +19,7 @@ const NAV_ITEMS = [
   { label: 'contact',    path: '/contact' },
   { label: 'study',      path: '/studyTools' },
   { label: 'prioritize', path: '/prioritize' },
-  { label: 'lecturetex', path: '/lecturetex' },
+  { label: 'lecturetex', path: 'https://lecturetex.juhi.studio' },
 ];
 
 export default function Hero() {
@@ -122,7 +122,7 @@ export default function Hero() {
   // ── Navigation ───────────────────────────────────────────────────────────
   const go = useCallback((item: typeof NAV_ITEMS[0]) => {
     if (item.path === '/prioritize') { window.location.href = '/prioritize/'; return; }
-    if (item.path === '/lecturetex') { window.location.href = 'https://lecturetex.juhi.studio';  return; }
+    if (item.path === 'https://lecturetex.juhi.studio') { window.location.href = 'https://lecturetex.juhi.studio';  return; }
     navigate(item.path);
   }, [navigate]);
 
