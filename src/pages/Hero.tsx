@@ -4,6 +4,11 @@ import { useNavigate } from 'react-router';
 const CELL_SIZE = 50;
 const FPS = 15;
 
+const G = '#00ff41';
+const G_DIM = 'rgba(0,255,65,0.35)';
+const G_MID = 'rgba(0,255,65,0.6)';
+const G_BG  = 'rgba(0,255,65,0.07)';
+
 const NAV_ITEMS = [
   { label: 'home',       path: '/' },
   { label: 'about',      path: '/about' },
@@ -23,6 +28,7 @@ export default function Hero() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const navigate = useNavigate();
 
+  // ── Game of Life canvas ──────────────────────────────────────────────────
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -30,171 +36,192 @@ export default function Hero() {
     if (!ctx) return;
 
     let cols: number, rows: number, grid: number[][];
-    let animationFrameId: number;
-    let lastRenderTime = 0;
+    let raf: number, last = 0;
 
     const setup = () => {
-      canvas.width = window.innerWidth;
+      canvas.width  = window.innerWidth;
       canvas.height = window.innerHeight;
-      cols = Math.floor(canvas.width / CELL_SIZE);
+      cols = Math.floor(canvas.width  / CELL_SIZE);
       rows = Math.floor(canvas.height / CELL_SIZE);
-      grid = new Array(cols).fill(null).map(() =>
-        new Array(rows).fill(null).map(() => (Math.random() > 0.85 ? 1 : 0))
+      grid = Array.from({ length: cols }, () =>
+        Array.from({ length: rows }, () => (Math.random() > 0.85 ? 1 : 0))
       );
     };
 
-    const computeNextGeneration = () => {
-      const next = grid.map(arr => [...arr]);
-      for (let i = 0; i < cols; i++) {
+    const step = () => {
+      const next = grid.map(c => [...c]);
+      for (let i = 0; i < cols; i++)
         for (let j = 0; j < rows; j++) {
           let n = 0;
-          for (let x = -1; x <= 1; x++) {
+          for (let x = -1; x <= 1; x++)
             for (let y = -1; y <= 1; y++) {
-              if (x === 0 && y === 0) continue;
+              if (!x && !y) continue;
               n += grid[(i + x + cols) % cols][(j + y + rows) % rows];
             }
-          }
-          const alive = grid[i][j] === 1;
-          if (alive && (n < 2 || n > 3)) next[i][j] = 0;
-          else if (!alive && n === 3) next[i][j] = 1;
+          const a = grid[i][j];
+          if (a && (n < 2 || n > 3)) next[i][j] = 0;
+          else if (!a && n === 3)    next[i][j] = 1;
         }
-      }
       grid = next;
     };
 
-    const SYMBOLS = ". ݁₊ ⊹ . ݁ ⟡ ݁ . ⊹ ₊ ݁.𖦹ׂ ₊˚⊹⋆".split(/\s+/).filter(Boolean);
+    const SYMS = ". ݁₊ ⊹ . ݁ ⟡ ₊˚⊹⋆".split(/\s+/).filter(Boolean);
 
     const draw = () => {
-      ctx.fillStyle = '#000000';
+      ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#ffffff';
-      const fontSize = Math.max(8, CELL_SIZE - 1);
-      ctx.font = `${fontSize}px "Sixtyfour Convergence", serif`;
+      ctx.fillStyle = '#fff';
+      ctx.font = `${Math.max(8, CELL_SIZE - 2)}px serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      for (let i = 0; i < cols; i++) {
-        for (let j = 0; j < rows; j++) {
-          if (grid[i][j] === 1) {
-            const glyph = SYMBOLS[(i * rows + j) % SYMBOLS.length];
-            ctx.fillText(glyph, i * CELL_SIZE + CELL_SIZE / 2, j * CELL_SIZE + CELL_SIZE / 2);
-          }
-        }
-      }
+      for (let i = 0; i < cols; i++)
+        for (let j = 0; j < rows; j++)
+          if (grid[i][j])
+            ctx.fillText(
+              SYMS[(i * rows + j) % SYMS.length],
+              i * CELL_SIZE + CELL_SIZE / 2,
+              j * CELL_SIZE + CELL_SIZE / 2,
+            );
     };
 
     const loop = (ts: number) => {
-      if (ts - lastRenderTime >= 1000 / FPS) {
-        draw();
-        computeNextGeneration();
-        lastRenderTime = ts;
-      }
-      animationFrameId = requestAnimationFrame(loop);
+      if (ts - last >= 1000 / FPS) { draw(); step(); last = ts; }
+      raf = requestAnimationFrame(loop);
     };
 
     setup();
-    animationFrameId = requestAnimationFrame(loop);
-    const onResize = () => setup();
-    window.addEventListener('resize', onResize);
-    return () => {
-      window.removeEventListener('resize', onResize);
-      cancelAnimationFrame(animationFrameId);
-    };
+    raf = requestAnimationFrame(loop);
+    window.addEventListener('resize', setup);
+    return () => { window.removeEventListener('resize', setup); cancelAnimationFrame(raf); };
   }, []);
 
-  const handleNavigate = useCallback((item: typeof NAV_ITEMS[0]) => {
-    if (item.path === '/prioritize') {
-      window.location.href = '/prioritize/';
-    } else if (item.path === '/lecturetex') {
-      window.location.href = '/lecturetex';
-    } else {
-      navigate(item.path);
-    }
+  // ── Navigation ───────────────────────────────────────────────────────────
+  const go = useCallback((item: typeof NAV_ITEMS[0]) => {
+    if (item.path === '/prioritize') { window.location.href = '/prioritize/'; return; }
+    if (item.path === '/lecturetex') { window.location.href = '/lecturetex';  return; }
+    navigate(item.path);
   }, [navigate]);
 
   useEffect(() => {
     if (!expanded) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setSelectedIndex(i => (i + 1) % NAV_ITEMS.length);
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedIndex(i => (i - 1 + NAV_ITEMS.length) % NAV_ITEMS.length);
-      } else if (e.key === 'Enter') {
-        handleNavigate(NAV_ITEMS[selectedIndex]);
-      } else if (e.key === 'Escape') {
-        setExpanded(false);
-      }
+      if (e.key === 'ArrowDown')  { e.preventDefault(); setSelectedIndex(i => (i + 1) % NAV_ITEMS.length); }
+      if (e.key === 'ArrowUp')    { e.preventDefault(); setSelectedIndex(i => (i - 1 + NAV_ITEMS.length) % NAV_ITEMS.length); }
+      if (e.key === 'Enter')      { go(NAV_ITEMS[selectedIndex]); }
+      if (e.key === 'Escape')     { setExpanded(false); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [expanded, selectedIndex, handleNavigate]);
+  }, [expanded, selectedIndex, go]);
 
+  // ── Render ───────────────────────────────────────────────────────────────
   return (
     <section className="relative w-full h-screen bg-black overflow-hidden">
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full z-0" />
 
-      {/* Name — animates from center to top on click */}
+      {/* ── Name ─────────────────────────────────────────────────────── */}
       <div
-        className="absolute left-1/2 z-10 transition-all duration-700 ease-in-out"
+        className="absolute left-1/2 z-10"
         style={{
           top: expanded ? '2.5rem' : '50%',
           transform: expanded ? 'translateX(-50%)' : 'translate(-50%, -50%)',
+          transition: 'top 0.75s cubic-bezier(0.4,0,0.2,1), transform 0.75s cubic-bezier(0.4,0,0.2,1)',
         }}
       >
-        <div style={!expanded ? { animation: 'gentle-bounce 2s ease-in-out infinite' } : undefined}>
-          <button
-            onClick={() => !expanded && setExpanded(true)}
-            className="text-4xl md:text-6xl lg:text-8xl tracking-widest text-white whitespace-nowrap select-none transition-opacity duration-300 hover:opacity-80"
-            style={{
-              fontFamily: 'Times New Roman, serif',
-              WebkitTextStroke: '1px rgba(0,0,0,0.25)',
-              textShadow: '0 0 16px rgba(0,0,0,0.6), 0 8px 32px rgba(0,0,0,0.6)',
-              cursor: expanded ? 'default' : 'pointer',
-            }}
-          >
-            Juhi Damley
-          </button>
-        </div>
+        <button
+          onClick={() => !expanded && setExpanded(true)}
+          className="text-4xl md:text-6xl lg:text-8xl tracking-widest text-white whitespace-nowrap select-none"
+          style={{
+            fontFamily: 'Times New Roman, serif',
+            animation: expanded ? 'none' : 'pulsate 2.5s ease-in-out infinite',
+            cursor: expanded ? 'default' : 'pointer',
+          }}
+        >
+          Juhi Damley
+        </button>
       </div>
 
-      {/* Terminal selector */}
+      {/* ── Terminal ─────────────────────────────────────────────────── */}
       <div
-        className="absolute left-1/2 -translate-x-1/2 z-10 w-full max-w-sm px-4 transition-all duration-500"
+        className="absolute left-1/2 top-1/2 z-10 w-full max-w-lg"
         style={{
-          top: '10rem',
+          transform: expanded
+            ? 'translate(-50%, -50%)'
+            : 'translate(-50%, calc(-50% + 40px))',
           opacity: expanded ? 1 : 0,
           pointerEvents: expanded ? 'auto' : 'none',
-          transform: `translateX(-50%) translateY(${expanded ? '0px' : '20px'})`,
+          transition: 'opacity 0.5s 0.35s ease, transform 0.5s 0.35s cubic-bezier(0.4,0,0.2,1)',
+          fontFamily: '"Courier New", Courier, monospace',
         }}
       >
-        <div className="border border-white/20 bg-black/85 backdrop-blur-sm font-mono text-sm">
-          <div className="px-4 pt-3 pb-2 text-white/30 text-xs tracking-[0.3em] border-b border-white/10">
-            SELECT DESTINATION
+        {/* box top */}
+        <div style={{ color: G_MID, whiteSpace: 'pre', fontSize: '0.78rem', lineHeight: 1.4 }}>
+          {'┌─ juhi@studio ~ ' + '─'.repeat(28) + '┐'}
+        </div>
+
+        <div
+          style={{
+            borderLeft: `1px solid ${G_MID}`,
+            borderRight: `1px solid ${G_MID}`,
+            background: 'rgba(0,0,0,0.88)',
+            backdropFilter: 'blur(4px)',
+          }}
+        >
+          {/* prompt line */}
+          <div className="px-4 py-2 text-xs" style={{ color: G_DIM }}>
+            juhi@studio:~$ <span style={{ color: G }}>ls navigation/</span>
           </div>
-          <div className="py-1">
-            {NAV_ITEMS.map((item, i) => (
-              <button
-                key={item.path}
-                onClick={() => handleNavigate(item)}
-                onMouseEnter={() => setSelectedIndex(i)}
-                className="w-full text-left px-4 py-1.5 flex items-center gap-3 transition-colors duration-100"
-                style={{
-                  background: i === selectedIndex ? 'rgba(255,255,255,0.08)' : 'transparent',
-                  color: i === selectedIndex ? '#ffffff' : 'rgba(255,255,255,0.4)',
-                }}
-              >
-                <span className="w-3 text-white/60">{i === selectedIndex ? '>' : ' '}</span>
-                <span className="flex-1 tracking-wider">{item.label}</span>
-                <span className="text-white/20 tracking-wider">{item.path}</span>
-              </button>
-            ))}
+
+          {/* nav items */}
+          <div className="pb-1">
+            {NAV_ITEMS.map((item, i) => {
+              const active = i === selectedIndex;
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => go(item)}
+                  onMouseEnter={() => setSelectedIndex(i)}
+                  className="w-full text-left flex items-center text-sm"
+                  style={{
+                    padding: '0.2rem 1rem',
+                    background: active ? G_BG : 'transparent',
+                    color: active ? G : G_DIM,
+                    transition: 'background 0.1s, color 0.1s',
+                  }}
+                >
+                  <span
+                    className="w-4 mr-2 text-center"
+                    style={{
+                      color: G,
+                      animation: active ? 'blink-cursor 1s step-end infinite' : 'none',
+                    }}
+                  >
+                    {active ? '>' : ' '}
+                  </span>
+                  <span className="flex-1 tracking-wider">{item.label}</span>
+                  <span style={{ color: G_DIM, fontSize: '0.75rem' }}>{item.path}</span>
+                </button>
+              );
+            })}
           </div>
-          <div className="px-4 py-2 border-t border-white/10 text-white/20 text-xs tracking-widest flex gap-4">
+
+          {/* hint line */}
+          <div
+            className="px-4 py-2 text-xs flex gap-5"
+            style={{
+              color: G_DIM,
+              borderTop: `1px solid rgba(0,255,65,0.12)`,
+            }}
+          >
             <span>↑↓ navigate</span>
-            <span>↵ select</span>
+            <span>↵ open</span>
             <span>esc close</span>
           </div>
+        </div>
+
+        {/* box bottom */}
+        <div style={{ color: G_MID, whiteSpace: 'pre', fontSize: '0.78rem', lineHeight: 1.4 }}>
+          {'└' + '─'.repeat(45) + '┘'}
         </div>
       </div>
     </section>
