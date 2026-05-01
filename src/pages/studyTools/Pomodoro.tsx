@@ -103,7 +103,7 @@ export function Pomodoro() {
   const progressPercent = ((totalModeTime - timeLeft) / totalModeTime) * 100;
 
   return (
-    <div className="min-h-screen w-full bg-[#008080] flex items-center justify-center p-4 relative font-sans">
+    <div className="min-h-screen w-full flex items-center justify-center p-4 relative font-sans">
       
       <RetroWindow 
         title="pomo_timer.exe" 

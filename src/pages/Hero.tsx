@@ -143,7 +143,7 @@ export default function Hero() {
 
       {/* ── Terminal ─────────────────────────────────────────────────── */}
       <div
-        className="absolute left-1/2 top-1/2 z-10 w-full max-w-lg"
+        className="absolute left-1/2 top-1/2 z-10 w-full max-w-lg md:max-w-2xl lg:max-w-3xl"
         style={{
           transform: expanded
             ? 'translate(-50%, -50%)'
@@ -155,8 +155,10 @@ export default function Hero() {
         }}
       >
         {/* box top */}
-        <div style={{ color: G_MID, whiteSpace: 'pre', fontSize: '0.78rem', lineHeight: 1.4 }}>
-          {'┌─ juhi@studio ~ ' + '─'.repeat(28) + '┐'}
+        <div style={{ color: G_MID, fontSize: '0.78rem', lineHeight: 1.4, display: 'flex', whiteSpace: 'nowrap' }}>
+          <span>{'┌─ juhi@studio ~ '}</span>
+          <span style={{ flex: 1, overflow: 'hidden' }}>{'─'.repeat(120)}</span>
+          <span>{'┐'}</span>
         </div>
 
         <div
@@ -220,8 +222,10 @@ export default function Hero() {
         </div>
 
         {/* box bottom */}
-        <div style={{ color: G_MID, whiteSpace: 'pre', fontSize: '0.78rem', lineHeight: 1.4 }}>
-          {'└' + '─'.repeat(45) + '┘'}
+        <div style={{ color: G_MID, fontSize: '0.78rem', lineHeight: 1.4, display: 'flex', whiteSpace: 'nowrap' }}>
+          <span>{'└'}</span>
+          <span style={{ flex: 1, overflow: 'hidden' }}>{'─'.repeat(120)}</span>
+          <span>{'┘'}</span>
         </div>
       </div>
     </section>

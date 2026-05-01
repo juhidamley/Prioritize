@@ -13,7 +13,7 @@ export function Links() {
 
   return (
     // Synthwave Grid Background
-    <div className="min-h-screen w-full bg-[#0a001a] bg-[linear-gradient(transparent_95%,rgba(255,0,255,0.3)_100%),linear-gradient(90deg,transparent_95%,rgba(255,0,255,0.3)_100%)] bg-[length:40px_40px] flex items-center justify-center p-4 relative overflow-hidden font-sans">
+    <div className="min-h-screen w-full bg-[linear-gradient(transparent_95%,rgba(255,0,255,0.3)_100%),linear-gradient(90deg,transparent_95%,rgba(255,0,255,0.3)_100%)] bg-[length:40px_40px] flex items-center justify-center p-4 relative overflow-hidden font-sans">
       
       {/* Glowing Sun Effect behind the window */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-gradient-to-b from-yellow-400 to-pink-600 rounded-full blur-[60px] opacity-40 pointer-events-none" />

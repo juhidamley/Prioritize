@@ -9,14 +9,15 @@ export default function MandelbrotBackground() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let width = window.innerWidth;
-    let height = window.innerHeight;
-    
-    const maxIter = 150; 
+    const RENDER_SCALE = 0.4; // render at 40% to stay smooth
+    let width = Math.floor(window.innerWidth  * RENDER_SCALE);
+    let height = Math.floor(window.innerHeight * RENDER_SCALE);
+
+    const maxIter = 150;
     const escapeRadiusSq = 4;
     const baseRe = -0.74364388;
     const baseIm = 0.13182590;
-    let time = 0; 
+    let time = 0;
 
     const palette = new Uint8ClampedArray(maxIter * 4);
     for (let i = 0; i < maxIter; i++) {
@@ -29,10 +30,10 @@ export default function MandelbrotBackground() {
     let animationFrameId: number;
 
     const renderFrame = () => {
-      time += 0.015; 
-      const centerRe = baseRe + Math.sin(time * 0.3) * 0.001;
-      const centerIm = baseIm + Math.cos(time * 0.4) * 0.001;
-      const zoomRange = 0.008 + Math.sin(time * 0.2) * 0.004;
+      time += 0.004; // slow, smooth drift
+      const centerRe = baseRe + Math.sin(time * 0.13) * 0.0012;
+      const centerIm = baseIm + Math.cos(time * 0.17) * 0.0012;
+      const zoomRange = 0.008 + Math.sin(time * 0.09) * 0.003;
 
       const imgData = ctx.createImageData(width, height);
       const data = imgData.data;
@@ -80,9 +81,9 @@ export default function MandelbrotBackground() {
     };
 
     const setupCanvas = () => {
-      width = window.innerWidth;
-      height = window.innerHeight;
-      canvas.width = width;
+      width  = Math.floor(window.innerWidth  * RENDER_SCALE);
+      height = Math.floor(window.innerHeight * RENDER_SCALE);
+      canvas.width  = width;
       canvas.height = height;
     };
 
