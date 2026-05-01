@@ -26,6 +26,8 @@ export default function Hero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [aliveCount, setAliveCount] = useState(0);
+  const [showHint, setShowHint] = useState(false);
   const navigate = useNavigate();
 
   // ── Game of Life canvas ──────────────────────────────────────────────────
@@ -67,6 +69,9 @@ export default function Hero() {
 
     const SYMS = ". ݁₊ ⊹ . ݁ ⟡ ₊˚⊹⋆".split(/\s+/).filter(Boolean);
 
+    let frame = 0;
+    let lastChangeTime = performance.now();
+    let prevCount = -1;
     const draw = () => {
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -74,14 +79,33 @@ export default function Hero() {
       ctx.font = `${Math.max(8, CELL_SIZE - 2)}px serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
+      let count = 0;
       for (let i = 0; i < cols; i++)
         for (let j = 0; j < rows; j++)
-          if (grid[i][j])
+          if (grid[i][j]) {
             ctx.fillText(
               SYMS[(i * rows + j) % SYMS.length],
               i * CELL_SIZE + CELL_SIZE / 2,
               j * CELL_SIZE + CELL_SIZE / 2,
             );
+            count++;
+          }
+
+      // detect stall: if alive count hasn't changed for 5s, restart
+      if (count !== prevCount) {
+        prevCount = count;
+        lastChangeTime = performance.now();
+      } else {
+        if (performance.now() - lastChangeTime >= 5000) {
+          setup();
+          lastChangeTime = performance.now();
+          prevCount = -1;
+          return; // skip updating state this frame, grid has been reset
+        }
+      }
+
+      frame++;
+      if (frame % 3 === 0) setAliveCount(count);
     };
 
     const loop = (ts: number) => {
@@ -114,6 +138,15 @@ export default function Hero() {
     return () => window.removeEventListener('keydown', onKey);
   }, [expanded, selectedIndex, go]);
 
+  useEffect(() => {
+    if (expanded) {
+      setShowHint(false);
+      return;
+    }
+    const id = setTimeout(() => setShowHint(true), 10000);
+    return () => clearTimeout(id);
+  }, [expanded]);
+
   // ── Render ───────────────────────────────────────────────────────────────
   return (
     <section className="relative w-full h-screen bg-black overflow-hidden">
@@ -123,18 +156,19 @@ export default function Hero() {
       <div
         className="absolute left-1/2 z-10"
         style={{
-          top: expanded ? '2.5rem' : '50%',
+          top: expanded ? '10rem' : '50%',
           transform: expanded ? 'translateX(-50%)' : 'translate(-50%, -50%)',
           transition: 'top 0.75s cubic-bezier(0.4,0,0.2,1), transform 0.75s cubic-bezier(0.4,0,0.2,1)',
         }}
       >
         <button
-          onClick={() => !expanded && setExpanded(true)}
+          onClick={() => { if (!expanded) { setExpanded(true); setShowHint(false); } }}
           className="text-4xl md:text-6xl lg:text-8xl tracking-widest text-white whitespace-nowrap select-none"
           style={{
             fontFamily: 'Times New Roman, serif',
-            animation: expanded ? 'none' : 'pulsate 2.5s ease-in-out infinite',
+            //animation: expanded ? 'none' : 'pulsate 3s ease-in-out infinite',
             cursor: expanded ? 'default' : 'pointer',
+            color: expanded ? G : '#ffe169',
           }}
         >
           Juhi Damley
@@ -228,6 +262,44 @@ export default function Hero() {
           <span>{'┘'}</span>
         </div>
       </div>
+
+      <div
+        className="absolute left-4 bottom-4 z-20"
+        style={{
+          color: G,
+          background: 'rgba(0,0,0,0.6)',
+          border: `1px solid ${G_MID}`,
+          padding: '0.25rem 0.5rem',
+          fontFamily: '"Courier New", Courier, monospace',
+          fontSize: '0.75rem',
+          borderRadius: '4px',
+        }}
+      >
+        <div style={{ color: G_MID, fontSize: '0.65rem', marginBottom: 4 }}>Game of Life</div>
+        <div>
+          <span style={{ color: G_MID, marginRight: 8 }}>alive</span>
+          <span>{aliveCount}</span>
+        </div>
+      </div>
+
+      {showHint && (
+        <div
+          className="absolute right-4 bottom-4 z-20"
+          style={{
+            color: G,
+            background: 'rgba(0,0,0,0.6)',
+            border: `1px solid ${G_MID}`,
+            padding: '0.25rem 0.5rem',
+            fontFamily: '"Courier New", Courier, monospace',
+            fontSize: '0.75rem',
+            borderRadius: '4px',
+            textAlign: 'right',
+          }}
+        >
+          <div style={{ color: G_MID, fontSize: '0.65rem', marginBottom: 4 }}>Hint</div>
+          <div>Click the name to view the navigation</div>
+        </div>
+      )}
     </section>
   );
 }
