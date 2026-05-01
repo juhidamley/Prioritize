@@ -52,8 +52,6 @@ export function StudyTools() {
           </div>
         </RetroWindow>
 
-        // Inside your StudyTools.tsx return block, update the resources window:
-
         {/* Tool 3: Study Resources & Apps */}
         <RetroWindow title="applications.hlp" icon="📁" className="md:col-span-2 min-h-48">
           <div className="flex gap-4 px-2 pb-1 border-b border-gray-500 mb-2 text-xs">
@@ -92,12 +90,16 @@ export function StudyTools() {
                 </span>
               </button>
 
-              <button className="flex flex-col items-center gap-2 group focus:outline-none w-24 opacity-50 cursor-not-allowed">
-                <div className="w-12 h-12 bg-gray-200 border border-gray-400 flex items-center justify-center text-2xl">
+              {/* THE LECTURETEX LINK */}
+              <button 
+                onClick={() => window.location.href = 'https://lecturetex.juhi.studio'}
+                className="flex flex-col items-center gap-2 group focus:outline-none w-24"
+              >
+                <div className="w-12 h-12 bg-gray-200 border border-gray-400 flex items-center justify-center text-2xl group-hover:bg-[#000080] group-hover:text-white transition-colors">
                   🧮
                 </div>
-                <span className="text-xs font-sans text-center px-1">
-                  MathNotes (WIP)
+                <span className="text-xs font-sans text-center group-hover:bg-[#000080] group-hover:text-white px-1">
+                  LectureTeX.exe
                 </span>
               </button>
             </div>
