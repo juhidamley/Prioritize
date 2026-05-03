@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router';
 import { useState, ReactNode } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 // Your Project Data
 const PROJECTS = [
@@ -7,8 +9,27 @@ const PROJECTS = [
   id: 'lectureTex',
   file: 'lecturetex.py',
   title: 'LectureTex',
-  tech: 'Python, FastAPI, Modal, Whisper, Claude AI, LaTeX, React, Electron, Vercel',
-  desc: 'End-to-end pipeline that converts lecture audio and video into publication-quality LaTeX notes with a compiled PDF. Audio is transcribed using OpenAI Whisper on an A100 GPU via Modal, then Claude generates subject-aware structured notes — handling mathematical notation, theorem formatting, and proof structure automatically. Features an AI-driven LaTeX repair loop that parses compile errors and self-corrects the source before retrying. Deployed as both a Vercel web app and an Electron desktop app, backed by a FastAPI job server on DigitalOcean that manages the async GPU pipeline.',
+  tech: 'Python, Faster Whisper, Anthropic Claude, NVIDIA NIM APIs, Modal (A100 serverless), FastAPI, React, Vite, Electron, LaTeX, FFmpeg, aria2',
+    desc: `LectureTeX is an end-to-end AI pipeline that turns lectures into publication-quality PDF study notes in minutes.
+
+  It accepts three input types: live recordings, uploaded audio files, and cloud-sharing links.
+
+  The pipeline runs on NVIDIA A100 GPUs via Modal serverless infrastructure and follows three stages:
+
+  1. **Transcription**  
+    Audio is transcribed with Faster Whisper (large-v3). Low-confidence spans are filtered, overlapping chunks are deduplicated, and uploaded/link-based media is pre-compressed with FFmpeg for faster transfer.
+  2. **Note generation**  
+    Transcripts are sent to an LLM (Claude, Llama, DeepSeek, Qwen, Mistral, Gemma, Phi, Nemotron, and others) using subject-aware prompts and a four-tier importance hierarchy.
+  3. **Compilation and cleanup**  
+    LaTeX output is deterministically cleaned (references, labels, operators, malformed blocks, markdown artifacts) and compiled with pdflatex using a full texlive install.
+
+  Output depth is configurable:
+
+  - **Concise:** 4-6 pages
+  - **Standard:** 8-12 pages
+  - **Detailed:** 14-18 pages
+
+  LectureTeX ships as a web app, desktop app (Electron), and Python CLI over a shared FastAPI backend with Modal webhook dispatch.`,
   icon: '🎓',
   link: '/lecturetex/'
   },
@@ -17,16 +38,52 @@ const PROJECTS = [
     file: 'prioritize.exe',
     title: 'Prioritize (Queue Management)',
     tech: 'React, Vite, Tailwind CSS, Supabase, Node.js',
-    desc: 'Prioritize is a high-performance task management application developed with TypeScript and React, designed to bridge the gap between complex workflows and intuitive user experience. Originally translated from a detailed Figma design, the platform features a secure authentication system powered by Supabase and a dynamic dashboard for real-time task tracking and organization. By leveraging a modular architecture with Shadcn UI and Vite, the project maintains a 96% type-safe codebase, ensuring a scalable, responsive, and reliable tool for professional productivity.',
+    desc: `Prioritize is a collaborative task manager built around a simple idea: deciding **what to do next** is harder than just writing tasks down.
+
+  Instead of flat lists, work is organized into shared queues that can be ranked, reordered, and edited in real time.
+
+  Core features include:
+
+  - Pairwise ranking mode (Beli-inspired) powered by binary insertion sort
+  - Nested tasks via sub-queues for breaking down large work
+  - Six-color queue palettes for fast visual scanning
+  - Live multi-user collaboration via Supabase realtime subscriptions
+  - Google/GitHub auth plus guest mode with local storage
+
+  The result is a deliberate, continuously updated priority stack for both personal and team workflows.`,
     icon: '⚡',
     link: 'https://ptz.juhi.studio'
+  },
+  {
+    id: 'studio',
+    file: 'studio.html',
+    title: 'juhi.studio',
+    tech: 'React, TypeScript, Vite, Tailwind CSS',
+    desc: `juhi.studio is a custom personal portfolio and app platform.
+
+  The homepage features a live Conway's Game of Life canvas with symbol-based cells, keyboard-accessible terminal navigation, and staged animation that transitions the hero into a command-style interface.
+
+  Interior pages share a continuously panning Mandelbrot fractal layer and a responsive Windows 95-inspired UI system.
+
+  Notable sections include:
+
+  - **Projects:** two-pane file explorer experience
+  - **Research:** simulated database terminal
+  - **Contact:** retro messaging-style compose flow
+  - **Study Tools:** includes a functional Pomodoro utility
+
+  The platform also links to independently deployed companion apps (Prioritize and LectureTeX) and is deployed on Vercel with SPA rewrites and analytics.`,
+    icon: '🖥️',
+    link: 'https://juhi.studio'
   },
   {
     id: 'espinosa',
     file: 'espinosa_portfolio.html',
     title: 'Gaston Espinosa Portfolio',
     tech: 'HTML, CSS, UI/UX Design',
-    desc: 'A high-performance academic portfolio for Professor Gaston Espinosa using React and TypeScript. The site features dynamic course listings, a dedicated media gallery, and a responsive UI built with Shadcn components, all optimized for a seamless and accessible user experience.fessor Gaston Espinosa, focusing on clean design and accessible architecture.',
+    desc: `A high-performance academic portfolio for Professor Gaston Espinosa, built with React and TypeScript.
+
+  It includes dynamic course listings, a dedicated media gallery, and a responsive component-driven UI focused on accessibility and clean information architecture.`,
     icon: '🌐',
     link: null
   },
@@ -35,7 +92,11 @@ const PROJECTS = [
     file: 'wake_me.app',
     title: 'Wake Me',
     tech: 'Swift, watchOS, iOS, Xcode',
-    desc: 'WakeMe is a specialized accessibility utility developed in Swift for iOS and Apple Watch, specifically designed to support individuals managing narcolepsy and excessive daytime sleepiness. By leveraging biometric data to detect unintended sleep episodes, the app triggers immediate alerts through a dedicated watchOS companion app to wake the user. This project demonstrates a sophisticated use of cross-device synchronization and real-time monitoring within the Apple ecosystem to create a practical, life-enhancing tool for neurological health management.',
+    desc: `WakeMe is an accessibility-focused iOS + watchOS app built in Swift to support people managing narcolepsy and excessive daytime sleepiness.
+
+  Using biometric signals to detect unintended sleep episodes, it triggers immediate wake alerts through an Apple Watch companion flow.
+
+  The project emphasizes real-time monitoring, cross-device synchronization, and practical neurological health support in the Apple ecosystem.`,
     icon: '⏰',
     link: "https://github.com/juhidamley/WakeMe"
   },
@@ -44,7 +105,11 @@ const PROJECTS = [
     file: 'contact_prefs.bat',
     title: 'Contact Prefs',
     tech: 'Python, Batchfile',
-    desc: 'contactPrefs is a Python-based administrative utility developed for an advancement office to streamline the management of donor and constituent contact data. The project features a custom GUI that allows users to standardize complex file-naming conventions and preference updates with high precision and consistency. To ensure accessibility for non-technical staff, the application is wrapped in a Batchfile for one-click execution, transforming a sophisticated data-management script into a user-friendly, production-ready tool that enhances office workflow and data integrity.',
+    desc: `contactPrefs is a Python administrative utility built for advancement-office donor and constituent data workflows.
+
+  It provides a custom GUI for standardizing complex file naming and preference updates with high consistency.
+
+  To support non-technical staff, the tool is wrapped in a Batch script for one-click execution, turning a technical data process into a production-ready office utility.`,
     icon: '💼',
     link: "https://github.com/juhidamley/contactPrefs"
   },
@@ -53,7 +118,11 @@ const PROJECTS = [
     file: 'challengeverse.html',
     title: 'The Sims 4 ChallengeVerse',
     tech: "React, Vite, Tailwind CSS, React Router, Firebase, and JavaScript.",
-    desc: 'The Sims 4 ChallengeVerse is a dynamic web application built with React, Vite, and Firebase that serves as a centralized hub for the Sims 4 community to discover and track gameplay challenges. The platform features a robust, filterable directory with advanced multiselect tagging for categories like "Legacy" or "Rags to Riches," alongside interactive elements like celebratory animations to enhance the user experience. By leveraging Tailwind CSS for responsive styling and Firebase Hosting for deployment, the project demonstrates a high level of proficiency in full-stack frontend development and the ability to build functional, community-driven digital tools.',
+    desc: `The Sims 4 ChallengeVerse is a community-focused web app for discovering and tracking Sims 4 gameplay challenges.
+
+  Built with React, Vite, and Firebase, it includes a filterable challenge directory with multi-select tags (for categories like Legacy and Rags to Riches), plus playful UI interactions and celebratory feedback.
+
+  Tailwind-based responsive styling and Firebase deployment round out a polished, production-grade frontend experience.`,
     icon: '🎮',
     link: "https://github.com/juhidamley/ts4ChallengeVerse"
   },
@@ -62,7 +131,11 @@ const PROJECTS = [
     file: 'ie_employment.tex',
     title: 'Inland Empire and Imperial County Employment Disparities',
     tech: 'Python, LaTeX',
-    desc: 'An economic research project that utilizes R to analyze regional labor market disparities between the Inland Empire and Imperial County. By deriving a custom "Job Opportunity Index" (JOI), the study assesses employment attainability by correlating commute data, census variables, and industry-specific employment statistics. The project features automated data visualizations and a comprehensive writeup that theorizes the structural differences in job access across Southern California, demonstrating proficiency in statistical modeling and geospatial economic analysis.',
+    desc: `An economic research project analyzing labor market disparities between the Inland Empire and Imperial County.
+
+  Using R, the study develops a custom **Job Opportunity Index (JOI)** by correlating commute behavior, census variables, and industry-level employment data.
+
+  The deliverable includes automated visualizations and a full written analysis of structural differences in job access across Southern California.`,
     icon: '📈',
     link: "https://github.com/juhidamley/IE-Employment/tree/main"
   },
@@ -71,7 +144,11 @@ const PROJECTS = [
     file: 'stylometry.py',
     title: 'Stylometric Analysis of Haruki Murakami Translations',
     tech: 'Python',
-    desc: 'A Python-based linguistic analysis project that utilizes Markov models to identify and compare the distinct stylistic "fingerprints" of different literary translators. By training models on two separate English translations of Haruki Murakami\'s Hard-Boiled Wonderland and the End of the World—one by Phillip Gabriel and another by Alfred Birnbaum—the program evaluates whether these specific stylistic traits persist across their other translated works. The project demonstrates a sophisticated application of natural language processing and statistical probability to quantify the influence of a translator\'s "voice" on a source text.',
+    desc: `A Python NLP project that uses Markov models to compare translator-specific stylistic fingerprints.
+
+  Models were trained on two English translations of *Hard-Boiled Wonderland and the End of the World* (Phillip Gabriel vs. Alfred Birnbaum), then tested for whether those stylistic signals persist across each translator's broader catalog.
+
+  The work quantifies how translator voice can shape a source text in measurable ways.`,
     icon: '✍️',
     link: "https://github.com/juhidamley/cs5Final"
   },
@@ -80,7 +157,11 @@ const PROJECTS = [
     file: 'spotify_stats.py',
     title: 'Spotify Statistical Analysis',
     tech: 'Python, Pandas, Matplotlib',
-    desc: 'A data science project that earned first place in the CMC Economics Department Spring 2025 Statistics Competition. Developed in Python, the application conducts a rigorous multi-variable regression analysis on a dataset of 900,000 songs to isolate the key determinants of musical popularity, such as energy, acousticness, and instrumentalness. By utilizing Pandas for data preprocessing and Matplotlib for trend visualization, the project transforms raw metadata into actionable economic insights, demonstrating a high-level command of statistical modeling and large-scale data analysis.',
+    desc: `First-place project in the CMC Economics Department Spring 2025 Statistics Competition.
+
+  Built in Python, it performs multivariable regression over a dataset of ~500,000 songs to isolate key predictors of popularity (including energy, acousticness, and instrumentalness).
+
+  Pandas-based preprocessing and Matplotlib visual analysis turn large-scale streaming metadata into interpretable economic insights.`,
     icon: '🎵',
     link: "https://github.com/juhidamley/spotify-stats"
   },
@@ -162,7 +243,17 @@ export function Projects() {
               </div>
 
               <div className="bg-white border-t-2 border-l-2 border-b-2 border-r-2 border-t-gray-500 border-l-gray-500 border-b-white border-r-white p-4 mb-6 shadow-inner text-black font-serif leading-relaxed">
-                {activeProject.desc}
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    p: ({ children }) => <p className="mb-4 last:mb-0">{children}</p>,
+                    ul: ({ children }) => <ul className="mb-4 ml-5 list-disc">{children}</ul>,
+                    ol: ({ children }) => <ol className="mb-4 ml-5 list-decimal">{children}</ol>,
+                    li: ({ children }) => <li className="mb-1">{children}</li>,
+                  }}
+                >
+                  {activeProject.desc}
+                </ReactMarkdown>
               </div>
 
               {/* Dynamic Action Button */}

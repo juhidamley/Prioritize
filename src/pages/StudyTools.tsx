@@ -27,30 +27,6 @@ export function StudyTools() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-b from-blue-400 to-purple-600 rounded-full blur-[100px] opacity-20 pointer-events-none" />
 
       <div className="w-full max-w-5xl z-10 grid grid-cols-1 md:grid-cols-2 gap-6 relative pb-16">
-        
-        {/* Tool 1: AI Math Notetaker Placeholder */}
-        <RetroWindow title="MathNotes.exe" icon="🧮" className="h-64">
-           <div className="w-full h-full bg-white border-2 border-inset p-4 text-black font-mono overflow-y-auto">
-             <p className="text-blue-600 font-bold mb-2">&gt; AI Math Notetaker v0.1</p>
-             <p className="text-gray-600 italic mb-4">"Building an AI math notetaker for VS Code..."</p>
-             <div className="p-2 border border-dashed border-gray-400 text-center text-sm">
-               [ Module Loading: Under Construction ]
-             </div>
-           </div>
-        </RetroWindow>
-
-        {/* Tool 2: Accountabl Status */}
-        <RetroWindow title="Accountabl_Habits.sys" icon="📈" className="h-64">
-          <div className="w-full h-full bg-black border-2 border-inset p-4 text-green-500 font-mono text-sm">
-            <p>STATUS: ACTIVE</p>
-            <p>POINTS_EARNED: 450</p>
-            <p>STREAK: 12 DAYS</p>
-            <div className="mt-4 bg-green-900 h-4 w-full">
-               <div className="bg-green-400 h-full w-3/4"></div>
-            </div>
-            <p className="mt-1 text-[10px]">Progress to daily goal...</p>
-          </div>
-        </RetroWindow>
 
         {/* Tool 3: Study Resources & Apps */}
         <RetroWindow title="applications.hlp" icon="📁" className="md:col-span-2 min-h-48">
