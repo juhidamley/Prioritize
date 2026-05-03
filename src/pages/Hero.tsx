@@ -18,7 +18,7 @@ const NAV_ITEMS = [
   { label: 'research',   path: '/research' },
   { label: 'contact',    path: '/contact' },
   { label: 'study',      path: '/studyTools' },
-  { label: 'prioritize', path: '/prioritize' },
+  { label: 'prioritize', path: 'https://ptz.juhi.studio' },
   { label: 'lecturetex', path: 'https://lecturetex.juhi.studio' },
 ];
 
@@ -121,8 +121,7 @@ export default function Hero() {
 
   // ── Navigation ───────────────────────────────────────────────────────────
   const go = useCallback((item: typeof NAV_ITEMS[0]) => {
-    if (item.path === '/prioritize') { window.location.href = '/prioritize/'; return; }
-    if (item.path === 'https://lecturetex.juhi.studio') { window.location.href = 'https://lecturetex.juhi.studio';  return; }
+    if (item.path.startsWith('https://')) { window.location.href = item.path; return; }
     navigate(item.path);
   }, [navigate]);
 
@@ -235,7 +234,9 @@ export default function Hero() {
                     {active ? '>' : ' '}
                   </span>
                   <span className="flex-1 tracking-wider">{item.label}</span>
-                  <span style={{ color: G_DIM, fontSize: '0.75rem' }}>{item.path}</span>
+                  <span style={{ color: G_DIM, fontSize: '0.75rem' }}>
+                    {item.path.startsWith('https://') ? item.path.replace('https://', '') : item.path}
+                  </span>
                 </button>
               );
             })}

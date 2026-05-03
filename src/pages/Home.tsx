@@ -33,7 +33,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'About', icon: '/assets/about.svg', path: '/about', x: 510, y: 199.6, w: 141.8, h: 159.5 },
   { label: 'Resume', icon: '/assets/resume.svg', path: '/resume', x: 511.8, y: 392.5, w: 141.8, h: 149.2 },
   { label: 'Contact', icon: '/assets/contact.svg', path: '/contact', x:  707.2, y: 233, w: 141.8, h: 126.1 },
-  { label: 'Prioritize', icon: '/assets/prioritize.svg', path: '/prioritize', x: 707.2, y: 392.5, w: 141.8, h: 149.2 },
+  { label: 'Prioritize', icon: '/assets/prioritize.svg', path: 'https://ptz.juhi.studio', x: 707.2, y: 392.5, w: 141.8, h: 149.2 },
   { label: 'Projects', icon: '/assets/projects.svg', path: '/projects', x: 878.4, y: 195.3, w: 141.8, h: 163.8 },
   { label: 'Research', icon: '/assets/research.svg', path: '/research', x: 878.4, y: 392.5, w: 141.8, h: 149.2 },
   { label: "LectureTeX", icon: '/assets/lectureTex_icon.svg', path: '/lecturetex', x: 511.8, y: 555, w: 141.8, h: 149.2 },
@@ -78,11 +78,8 @@ export function Home() {
             <button
               key={item.label}
               onClick={() => {
-                if (item.path === '/prioritize') {
-                  window.location.href = '/prioritize/';
-                } else if (item.path === '/lecturetex') {
-                  // Redirect to the new subdomain instead of an internal route
-                  window.location.href = 'https://lecturetex.juhi.studio'; 
+                if (item.path.startsWith('https://')) {
+                  window.location.href = item.path;
                 } else if (item.path.endsWith('.pdf')) {
                   window.open(item.path, '_blank', 'noopener,noreferrer');
                 } else {

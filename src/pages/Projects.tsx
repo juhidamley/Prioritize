@@ -19,7 +19,7 @@ const PROJECTS = [
     tech: 'React, Vite, Tailwind CSS, Supabase, Node.js',
     desc: 'Prioritize is a high-performance task management application developed with TypeScript and React, designed to bridge the gap between complex workflows and intuitive user experience. Originally translated from a detailed Figma design, the platform features a secure authentication system powered by Supabase and a dynamic dashboard for real-time task tracking and organization. By leveraging a modular architecture with Shadcn UI and Vite, the project maintains a 96% type-safe codebase, ensuring a scalable, responsive, and reliable tool for professional productivity.',
     icon: '⚡',
-    link: '/prioritize/'
+    link: 'https://ptz.juhi.studio'
   },
   {
     id: 'espinosa',

@@ -79,7 +79,7 @@ export function StudyTools() {
 
               {/* THE PRIORITIZE LINK */}
               <button 
-                onClick={() => window.location.href = '/prioritize/'}
+                onClick={() => window.location.href = 'https://ptz.juhi.studio'}
                 className="flex flex-col items-center gap-2 group focus:outline-none w-24"
               >
                 <div className="w-12 h-12 bg-gray-200 border border-gray-400 flex items-center justify-center text-2xl group-hover:bg-[#000080] group-hover:text-white transition-colors">
