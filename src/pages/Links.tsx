@@ -4,7 +4,7 @@ const SOCIAL_LINKS = [
   { name: 'GitHub', url: 'https://github.com/juhidamley', icon: '💾' },
   { name: 'LinkedIn', url: 'https://linkedin.com/in/juhidamley', icon: '👔' },
   { name: 'Email', url: 'mailto:jdamley28@cmc.edu', icon: '📧' },
-  { name: 'HackerRank', url: 'https://www.hackerrank.com/juhidamley', icon: '🏆' },
+{ name: 'HackerRank', url: 'https://www.hackerrank.com/juhidamley', icon: '🏆' },
   { name: 'Kaggle', url: 'https://www.kaggle.com/juhidamley', icon: '📊' },
 ];
 

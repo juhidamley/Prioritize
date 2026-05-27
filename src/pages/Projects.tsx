@@ -34,6 +34,19 @@ const PROJECTS = [
   link: '/lecturetex/'
   },
   {
+    id: 'devlog',
+    file: 'devlog.md',
+    title: 'devlog',
+    tech: 'Next.js 15, React Three Fiber, Tiptap, Prisma, Postgres, Vercel Blob',
+    desc: `devlog is a personal development journal where I document what I'm building and why. Posts are organized by 
+    project and written in a custom admin CMS — a Tiptap rich-text editor backed by Prisma and Postgres, with image 
+    uploads via Vercel Blob. The frontend is built with Next.js 15 App Router and leans into a brutalist aesthetic: 
+    monospaced type, hard borders, and a live WebGL background rendered with React Three Fiber. The whole thing is its 
+    own exercise in over-engineering something that could've been a Notion doc.`,
+    icon: '📝',
+    link: 'https://devlog.juhi.studio'
+  },
+  {
     id: 'prioritize',
     file: 'prioritize.exe',
     title: 'Prioritize (Queue Management)',

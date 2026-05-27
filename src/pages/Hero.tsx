@@ -20,6 +20,7 @@ const NAV_ITEMS = [
   { label: 'study',      path: '/studyTools' },
   { label: 'prioritize', path: 'https://ptz.juhi.studio' },
   { label: 'lecturetex', path: 'https://lecturetex.juhi.studio' },
+  { label: 'devlog',     path: 'https://devlog.juhi.studio' },
 ];
 
 export default function Hero() {
