@@ -57,14 +57,14 @@ export function QueueView() {
     store.deleteTask(queue.id, taskId);
   };
 
-  const handleOpenSubQueue = (taskId: string) => {
+  const handleOpenSubQueue = async (taskId: string) => {
     const task = queue.tasks.find(t => t.id === taskId);
     if (!task) return;
 
     if (task.subQueueId) {
       navigate(`/queue/${task.subQueueId}`);
     } else {
-      const subQueue = store.createSubQueue(taskId, queue.id);
+      const subQueue = await store.createSubQueue(taskId, queue.id);
       if (subQueue) navigate(`/queue/${subQueue.id}`);
     }
   };
