@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router';
 
 const DEFAULT_DESCRIPTION =
-  'Juhi Damley — Computer Science student at Claremont McKenna College. Projects, research, and a retro-computing playground.';
+  'Juhi Damley is a Computer Science student at Claremont McKenna College. juhi.studio details her projects and research in a retro-computing playground.';
 
 const META: Record<string, { title: string; description?: string }> = {
   '/': { title: 'Juhi Damley | Studio' },
