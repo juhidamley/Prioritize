@@ -69,8 +69,7 @@ export function Contact() {
         {/* What I'm looking for + primary CTAs (Send relies on a desktop mail client) */}
         <div className="bg-[#ffffe1] border-b-2 border-gray-500 px-3 py-2 text-black text-xs md:text-sm flex flex-col sm:flex-row sm:items-center gap-2 shrink-0">
           <p className="flex-1">
-            Open to <span className="font-bold">internships &amp; collaborations</span> in machine learning,
-            quantitative finance, and software engineering. Fastest ways to reach me:
+            Open to <span className="font-bold">internships in Product Management. Fastest ways to reach me:</span>
           </p>
           <a
             href="https://www.linkedin.com/in/juhidamley"

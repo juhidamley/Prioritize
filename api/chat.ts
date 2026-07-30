@@ -9,7 +9,10 @@
 //   guarantees add a shared store (e.g. Upstash/Vercel KV) — see TODO below.
 
 import Anthropic from '@anthropic-ai/sdk';
-import { AI_JUHI_SYSTEM } from '@/content/ai-knowledge';
+// NOTE: keep this a RELATIVE import, not the '@/…' alias. This file is bundled
+// by @vercel/node (not Vite), which does not resolve tsconfig `paths` aliases —
+// an alias here fails at runtime with FUNCTION_INVOCATION_FAILED.
+import { AI_JUHI_SYSTEM } from '../src/content/ai-knowledge';
 
 const MODEL = process.env.CHAT_MODEL || 'claude-haiku-4-5';
 const MAX_MESSAGES = 16; // cap conversation length sent to the model
