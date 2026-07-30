@@ -1,37 +1,17 @@
-import { useNavigate } from 'react-router';
-import { ReactNode, useState } from 'react';
+import { useState } from 'react';
+import { RetroWindow } from '../app/components/retro/RetroWindow';
+import { Taskbar } from '../app/components/retro/Taskbar';
 
-// IMPORTANT: Put your actual email right here!
 const MY_EMAIL = 'jdamley28@cmc.edu';
 
-// Reusable Retro Window
-const RetroWindow = ({ title, icon, children, className = '' }: { title: string, icon: string, children: ReactNode, className?: string }) => (
-  <div className={`bg-[#c0c0c0] border-t-2 border-l-2 border-b-2 border-r-2 border-t-white border-l-white border-b-black border-r-black flex flex-col shadow-2xl ${className}`}>
-    <div className="bg-gradient-to-r from-[#000080] to-[#1084d0] text-white px-2 py-1 flex justify-between items-center shrink-0">
-      <div className="flex items-center gap-2">
-        <span className="text-sm">{icon}</span>
-        <h2 className="font-bold text-xs md:text-sm tracking-wide truncate">{title}</h2>
-      </div>
-      <div className="flex gap-1 shrink-0 ml-2">
-        <button className="bg-[#c0c0c0] w-4 h-4 border-t border-l border-t-white border-l-white border-b-black border-r-black text-black font-bold text-[10px] leading-none active:border-t-black active:border-l-black active:border-b-white active:border-r-white flex items-center justify-center">_</button>
-        <button className="bg-[#c0c0c0] w-4 h-4 border-t border-l border-t-white border-l-white border-b-black border-r-black text-black font-bold text-[10px] leading-none active:border-t-black active:border-l-black active:border-b-white active:border-r-white flex items-center justify-center">□</button>
-        <button onClick={() => window.history.back()} className="bg-[#c0c0c0] w-4 h-4 border-t border-l border-t-white border-l-white border-b-black border-r-black text-black font-bold text-[10px] leading-none active:border-t-black active:border-l-black active:border-b-white active:border-r-white flex items-center justify-center hover:bg-red-400">X</button>
-      </div>
-    </div>
-    <div className="flex-1 flex flex-col min-h-0">{children}</div>
-  </div>
-);
-
 export function Contact() {
-  const navigate = useNavigate();
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   
   const [showDialog, setShowDialog] = useState(false);
 
   const handleSend = () => {
-    const mailtoLink = `mailto:${MY_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
-    window.location.href = mailtoLink;
+    window.location.href = `mailto:${MY_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
   };
 
   const handleCopyEmail = () => {
@@ -40,14 +20,15 @@ export function Contact() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[linear-gradient(transparent_95%,rgba(255,0,255,0.3)_100%),linear-gradient(90deg,transparent_95%,rgba(255,0,255,0.3)_100%)] bg-[length:40px_40px] flex items-center justify-center p-4 md:p-8 relative font-sans">
-      
+    <div className="min-h-screen w-full bg-[linear-gradient(transparent_95%,rgba(255,0,255,0.3)_100%),linear-gradient(90deg,transparent_95%,rgba(255,0,255,0.3)_100%)] bg-[length:40px_40px] flex items-center justify-center p-4 md:p-8 pb-16 relative font-sans">
+      <h1 className="sr-only">Contact — Juhi Damley</h1>
+
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full blur-[100px] opacity-20 pointer-events-none" />
 
-      <RetroWindow title="New Message - Windows Messaging" icon="✉️" className="w-full max-w-3xl h-[75vh] md:h-[80vh] z-10">
-        
+      <RetroWindow title="New Message - Windows Messaging" icon="✉️" windowId="contact" className="w-full max-w-3xl h-[75vh] md:h-[80vh] z-10">
+
         {/* Menu Bar */}
-        <div className="flex gap-4 px-2 py-1 text-sm bg-[#c0c0c0] border-b border-gray-500 shrink-0">
+        <div className="flex gap-4 px-2 py-1 text-sm bg-[#c0c0c0] border-b border-gray-500 shrink-0" aria-hidden="true">
           <span className="hover:bg-blue-800 hover:text-white px-1 cursor-pointer">File</span>
           <span className="hover:bg-blue-800 hover:text-white px-1 cursor-pointer">Edit</span>
           <span className="hover:bg-blue-800 hover:text-white px-1 cursor-pointer">View</span>
@@ -78,11 +59,27 @@ export function Contact() {
           
           <div className="w-[2px] bg-gray-500 border-r border-white mx-1 my-1"></div>
           
-          <div className="flex items-center gap-1">
-            <button className="w-8 h-8 flex items-center justify-center border-t border-l border-t-white border-l-white border-b-black border-r-black active:border-t-black active:border-l-black active:border-b-white active:border-r-white hover:bg-gray-300">✂️</button>
-            <button className="w-8 h-8 flex items-center justify-center border-t border-l border-t-white border-l-white border-b-black border-r-black active:border-t-black active:border-l-black active:border-b-white active:border-r-white hover:bg-gray-300">📋</button>
-            <button className="w-8 h-8 flex items-center justify-center border-t border-l border-t-white border-l-white border-b-black border-r-black active:border-t-black active:border-l-black active:border-b-white active:border-r-white hover:bg-gray-300">📝</button>
+          <div className="flex items-center gap-1" aria-hidden="true">
+            <button tabIndex={-1} className="w-8 h-8 flex items-center justify-center border-t border-l border-t-white border-l-white border-b-black border-r-black active:border-t-black active:border-l-black active:border-b-white active:border-r-white hover:bg-gray-300">✂️</button>
+            <button tabIndex={-1} className="w-8 h-8 flex items-center justify-center border-t border-l border-t-white border-l-white border-b-black border-r-black active:border-t-black active:border-l-black active:border-b-white active:border-r-white hover:bg-gray-300">📋</button>
+            <button tabIndex={-1} className="w-8 h-8 flex items-center justify-center border-t border-l border-t-white border-l-white border-b-black border-r-black active:border-t-black active:border-l-black active:border-b-white active:border-r-white hover:bg-gray-300">📝</button>
           </div>
+        </div>
+
+        {/* What I'm looking for + primary CTAs (Send relies on a desktop mail client) */}
+        <div className="bg-[#ffffe1] border-b-2 border-gray-500 px-3 py-2 text-black text-xs md:text-sm flex flex-col sm:flex-row sm:items-center gap-2 shrink-0">
+          <p className="flex-1">
+            Open to <span className="font-bold">internships &amp; collaborations</span> in machine learning,
+            quantitative finance, and software engineering. Fastest ways to reach me:
+          </p>
+          <a
+            href="https://www.linkedin.com/in/juhidamley"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 bg-[#c0c0c0] border-t-2 border-l-2 border-b-2 border-r-2 border-t-white border-l-white border-b-black border-r-black px-3 py-1 font-bold text-black active:border-t-black active:border-l-black active:border-b-white active:border-r-white hover:bg-[#d4d4d4]"
+          >
+            👔 LinkedIn ↗
+          </a>
         </div>
 
         {/* Header Fields - THE FIX IS HERE */}
@@ -113,10 +110,10 @@ export function Contact() {
             <option>Arial</option>
             <option>Times New Roman</option>
           </select>
-          <div className="flex gap-1 ml-auto">
-            <button className="w-6 h-6 flex items-center justify-center font-bold text-sm border border-transparent hover:border-gray-400">B</button>
-            <button className="w-6 h-6 flex items-center justify-center italic text-sm border border-transparent hover:border-gray-400">I</button>
-            <button className="w-6 h-6 flex items-center justify-center underline text-sm border border-transparent hover:border-gray-400">U</button>
+          <div className="flex gap-1 ml-auto" aria-hidden="true">
+            <button tabIndex={-1} className="w-6 h-6 flex items-center justify-center font-bold text-sm border border-transparent hover:border-gray-400">B</button>
+            <button tabIndex={-1} className="w-6 h-6 flex items-center justify-center italic text-sm border border-transparent hover:border-gray-400">I</button>
+            <button tabIndex={-1} className="w-6 h-6 flex items-center justify-center underline text-sm border border-transparent hover:border-gray-400">U</button>
           </div>
         </div>
 
@@ -135,7 +132,7 @@ export function Contact() {
               <div className="bg-[#c0c0c0] border-t-2 border-l-2 border-b-2 border-r-2 border-t-white border-l-white border-b-black border-r-black shadow-2xl w-80 flex flex-col">
                 <div className="bg-gradient-to-r from-[#000080] to-[#1084d0] text-white px-2 py-1 flex justify-between items-center shrink-0">
                   <h2 className="font-bold text-sm">System Message</h2>
-                  <button onClick={() => setShowDialog(false)} className="bg-[#c0c0c0] w-4 h-4 border-t border-l border-t-white border-l-white border-b-black border-r-black text-black font-bold text-[10px] leading-none active:border-t-black active:border-l-black active:border-b-white active:border-r-white hover:bg-red-400 flex items-center justify-center">X</button>
+                  <button aria-label="Close dialog" onClick={() => setShowDialog(false)} className="bg-[#c0c0c0] w-4 h-4 border-t border-l border-t-white border-l-white border-b-black border-r-black text-black font-bold text-[10px] leading-none active:border-t-black active:border-l-black active:border-b-white active:border-r-white hover:bg-red-400 flex items-center justify-center">X</button>
                 </div>
                 <div className="p-4 flex gap-4 items-start">
                   <div className="text-3xl">ℹ️</div>
@@ -162,13 +159,7 @@ export function Contact() {
 
       </RetroWindow>
 
-      {/* Start Button Overlay */}
-      <button 
-        onClick={() => navigate('/')}
-        className="fixed bottom-4 left-4 bg-[#c0c0c0] border-t-2 border-l-2 border-b-2 border-r-2 border-t-white border-l-white border-b-black border-r-black px-3 py-1 font-bold text-black flex items-center gap-2 active:border-t-black active:border-l-black active:border-b-white active:border-r-white z-50 shadow-xl"
-      >
-        <span className="text-xl leading-none">⊞</span> Start
-      </button>
+      <Taskbar />
 
     </div>
   );

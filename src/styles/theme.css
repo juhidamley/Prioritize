@@ -1,3 +1,6 @@
+/* Note: the .dark token set below is currently unused by the portfolio
+   (nothing toggles the .dark class) — kept for shadcn/ui components in the
+   Prioritize app. */
 @custom-variant dark (&:is(.dark *));
 
 :root {

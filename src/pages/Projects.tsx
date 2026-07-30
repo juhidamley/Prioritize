@@ -1,15 +1,35 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useState, ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { RetroWindow } from '../app/components/retro/RetroWindow';
+import { Taskbar } from '../app/components/retro/Taskbar';
 
 // Your Project Data
 const PROJECTS = [
   {
+    id: 'electoralEquilibrium',
+    file: 'electoral_equilibrium.py',
+    title: 'Electoral Equilibrium',
+    tech: 'Python, Mistral 7B (QLoRA), CVXPY (DQCP), NumPy/SciPy Monte Carlo, RoBERTa, Next.js, Modal/vLLM',
+    desc: `Electoral Equilibrium is a stochastic-optimization research pipeline that models how a political party's winning voter coalition must structurally rebalance after a hypothetical political shock. It is prescriptive, not predictive — a Claremont McKenna SRP 2026 project advised by Prof. Gaston Espinosa.
+
+  Three stages, streamed to the browser over Server-Sent Events:
+
+  1. **Shock interpretation** — a fine-tuned Mistral 7B model (QLoRA, constrained decoding) estimates each demographic bloc's loyalty shift from free text.
+  2. **Coalition optimization** — a CVXPY disciplined-quasiconvex optimizer rebalances race/ethnicity weights to maximize P(win).
+  3. **Win-probability simulation** — a Monte Carlo simulation over a logistic-normal (ILR) distribution (N = 10,000+) yields P(win) with a 90% confidence interval.
+
+  15 demographic blocs across three strata, calibrated on ~20 U.S. presidential cycles (1948–2024). A research tool, not an election forecast.`,
+    icon: '🗳️',
+    link: 'https://electoral.juhi.studio',
+    writeup: 'electoral-equilibrium',
+  },
+  {
   id: 'lectureTex',
   file: 'lecturetex.py',
-  title: 'LectureTex',
-  tech: 'Python, Faster Whisper, Anthropic Claude, NVIDIA NIM APIs, Modal (A100 serverless), FastAPI, React, Vite, Electron, LaTeX, FFmpeg, aria2',
+  title: 'LectureTeX',
+  tech: 'Python, Faster Whisper, Anthropic Claude, NVIDIA NIM APIs, Modal (A100 serverless), DigitalOcean MCP, FastAPI, React, Vite, LaTeX, FFmpeg',
     desc: `LectureTeX is an end-to-end AI pipeline that turns lectures into publication-quality PDF study notes in minutes.
 
   It accepts three input types: live recordings, uploaded audio files, and cloud-sharing links.
@@ -29,9 +49,10 @@ const PROJECTS = [
   - **Standard:** 8-12 pages
   - **Detailed:** 14-18 pages
 
-  LectureTeX ships as a web app, desktop app (Electron), and Python CLI over a shared FastAPI backend with Modal webhook dispatch.`,
+  LectureTeX runs as a web app at lecturetex.juhi.studio over a FastAPI backend, with GPU work dispatched to Modal A100s and orchestrated via DigitalOcean MCP.`,
   icon: '🎓',
-  link: '/lecturetex/'
+  link: 'https://lecturetex.juhi.studio',
+  writeup: 'lecturetex',
   },
   {
     id: 'devlog',
@@ -41,8 +62,8 @@ const PROJECTS = [
     desc: `devlog is a personal development journal where I document what I'm building and why. Posts are organized by 
     project and written in a custom admin CMS — a Tiptap rich-text editor backed by Prisma and Postgres, with image 
     uploads via Vercel Blob. The frontend is built with Next.js 15 App Router and leans into a brutalist aesthetic: 
-    monospaced type, hard borders, and a live WebGL background rendered with React Three Fiber. The whole thing is its 
-    own exercise in over-engineering something that could've been a Notion doc.`,
+    monospaced type, hard borders, and a live WebGL background rendered with React Three Fiber. It turns a simple journal
+    into a fully self-hosted publishing stack — content model, rich-text editor, media pipeline, and rendering all built from scratch.`,
     icon: '📝',
     link: 'https://devlog.juhi.studio'
   },
@@ -88,17 +109,6 @@ const PROJECTS = [
   The platform also links to independently deployed companion apps (Prioritize and LectureTeX) and is deployed on Vercel with SPA rewrites and analytics.`,
     icon: '🖥️',
     link: 'https://juhi.studio'
-  },
-  {
-    id: 'espinosa',
-    file: 'espinosa_portfolio.html',
-    title: 'Gaston Espinosa Portfolio',
-    tech: 'HTML, CSS, UI/UX Design',
-    desc: `A high-performance academic portfolio for Professor Gaston Espinosa, built with React and TypeScript.
-
-  It includes dynamic course listings, a dedicated media gallery, and a responsive component-driven UI focused on accessibility and clean information architecture.`,
-    icon: '🌐',
-    link: null
   },
   {
     id: 'wakeMe',
@@ -180,38 +190,21 @@ const PROJECTS = [
   },
 ];
 
-// Reusable Retro Window
-const RetroWindow = ({ title, icon, children, className = '' }: { title: string, icon: string, children: ReactNode, className?: string }) => (
-  <div className={`bg-[#c0c0c0] border-t-2 border-l-2 border-b-2 border-r-2 border-t-white border-l-white border-b-black border-r-black flex flex-col shadow-2xl ${className}`}>
-    <div className="bg-gradient-to-r from-[#000080] to-[#1084d0] text-white px-2 py-1 flex justify-between items-center shrink-0">
-      <div className="flex items-center gap-2">
-        <span className="text-sm">{icon}</span>
-        <h2 className="font-bold text-xs md:text-sm tracking-wide truncate">{title}</h2>
-      </div>
-      <div className="flex gap-1 shrink-0 ml-2">
-        <button className="bg-[#c0c0c0] w-4 h-4 border-t border-l border-t-white border-l-white border-b-black border-r-black text-black font-bold text-[10px] leading-none active:border-t-black active:border-l-black active:border-b-white active:border-r-white flex items-center justify-center">_</button>
-        <button className="bg-[#c0c0c0] w-4 h-4 border-t border-l border-t-white border-l-white border-b-black border-r-black text-black font-bold text-[10px] leading-none active:border-t-black active:border-l-black active:border-b-white active:border-r-white flex items-center justify-center">□</button>
-        <button onClick={() => window.history.back()} className="bg-[#c0c0c0] w-4 h-4 border-t border-l border-t-white border-l-white border-b-black border-r-black text-black font-bold text-[10px] leading-none active:border-t-black active:border-l-black active:border-b-white active:border-r-white flex items-center justify-center hover:bg-red-400">X</button>
-      </div>
-    </div>
-    <div className="flex-1 flex flex-col">{children}</div>
-  </div>
-);
-
 export function Projects() {
   const navigate = useNavigate();
   const [activeProject, setActiveProject] = useState(PROJECTS[0]);
 
   return (
     // REMOVED bg-[#0a001a] so fractal shows through the grid
-    <div className="min-h-screen w-full bg-[linear-gradient(transparent_95%,rgba(255,0,255,0.3)_100%),linear-gradient(90deg,transparent_95%,rgba(255,0,255,0.3)_100%)] bg-[length:40px_40px] flex items-center justify-center p-4 md:p-8 relative font-sans">
-      
+    <div className="min-h-screen w-full bg-[linear-gradient(transparent_95%,rgba(255,0,255,0.3)_100%),linear-gradient(90deg,transparent_95%,rgba(255,0,255,0.3)_100%)] bg-[length:40px_40px] flex items-center justify-center p-4 md:p-8 pb-16 relative font-sans">
+      <h1 className="sr-only">Projects — Juhi Damley</h1>
+
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-b from-purple-600 to-pink-600 rounded-full blur-[120px] opacity-20 pointer-events-none" />
 
-      <RetroWindow title="C:\My Documents\Projects" icon="📁" className="w-full max-w-5xl h-[80vh] z-10">
-        
+      <RetroWindow title="C:\My Documents\Projects" icon="📁" windowId="projects" className="w-full max-w-5xl h-[80vh] z-10">
+
         {/* Toolbar */}
-        <div className="flex gap-4 px-2 py-1 text-sm bg-[#c0c0c0] border-b border-gray-500 shrink-0">
+        <div className="flex gap-4 px-2 py-1 text-sm bg-[#c0c0c0] border-b border-gray-500 shrink-0" aria-hidden="true">
           <span className="hover:bg-blue-800 hover:text-white px-1 cursor-pointer">File</span>
           <span className="hover:bg-blue-800 hover:text-white px-1 cursor-pointer">Edit</span>
           <span className="hover:bg-blue-800 hover:text-white px-1 cursor-pointer">View</span>
@@ -269,15 +262,25 @@ export function Projects() {
                 </ReactMarkdown>
               </div>
 
-              {/* Dynamic Action Button */}
-              {activeProject.link && (
-                <button 
-                  onClick={() => window.location.href = activeProject.link!}
-                  className="bg-[#c0c0c0] border-t-2 border-l-2 border-b-2 border-r-2 border-t-white border-l-white border-b-black border-r-black px-6 py-2 font-bold text-black flex items-center gap-2 active:border-t-black active:border-l-black active:border-b-white active:border-r-white hover:bg-gray-300 transition-none"
-                >
-                  <span>▶</span> Run {activeProject.file}
-                </button>
-              )}
+              {/* Dynamic Action Buttons */}
+              <div className="flex flex-wrap gap-2">
+                {activeProject.link && (
+                  <button
+                    onClick={() => window.location.href = activeProject.link!}
+                    className="bg-[#c0c0c0] border-t-2 border-l-2 border-b-2 border-r-2 border-t-white border-l-white border-b-black border-r-black px-6 py-2 font-bold text-black flex items-center gap-2 active:border-t-black active:border-l-black active:border-b-white active:border-r-white hover:bg-gray-300 transition-none"
+                  >
+                    <span>▶</span> Run {activeProject.file}
+                  </button>
+                )}
+                {(activeProject as any).writeup && (
+                  <button
+                    onClick={() => navigate(`/projects/${(activeProject as any).writeup}`)}
+                    className="bg-[#c0c0c0] border-t-2 border-l-2 border-b-2 border-r-2 border-t-white border-l-white border-b-black border-r-black px-6 py-2 font-bold text-black flex items-center gap-2 active:border-t-black active:border-l-black active:border-b-white active:border-r-white hover:bg-gray-300 transition-none"
+                  >
+                    <span>📄</span> Read the case study →
+                  </button>
+                )}
+              </div>
 
             </div>
           </div>
@@ -285,13 +288,7 @@ export function Projects() {
         </div>
       </RetroWindow>
 
-      {/* Start Button Overlay */}
-      <button 
-        onClick={() => navigate('/')}
-        className="fixed bottom-4 left-4 bg-[#c0c0c0] border-t-2 border-l-2 border-b-2 border-r-2 border-t-white border-l-white border-b-black border-r-black px-3 py-1 font-bold text-black flex items-center gap-2 active:border-t-black active:border-l-black active:border-b-white active:border-r-white z-50 shadow-xl"
-      >
-        <span className="text-xl leading-none">⊞</span> Start
-      </button>
+      <Taskbar />
 
     </div>
   );

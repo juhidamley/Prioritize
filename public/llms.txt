@@ -1,0 +1,53 @@
+# Juhi Damley — juhi.studio
+
+> Juhi Damley is a Computer Science student at Claremont McKenna College (class of 2028) who builds machine-learning research systems and developer tools. This file is a curated, factual index of her work for language models and answer engines. Descriptions are dense and self-contained so they can be quoted directly. Two flagship projects — Electoral Equilibrium (ML electoral-forecasting research) and LectureTeX (lecture-to-LaTeX note generation) — are described in full below.
+
+## About
+
+Juhi Damley — Computer Science, Claremont McKenna College, Claremont, CA.
+Works across machine learning, stochastic optimization, computational political research, and developer tooling.
+
+- Website: https://juhi.studio
+- GitHub: https://github.com/juhidamley
+- LinkedIn: https://www.linkedin.com/in/juhidamley
+- Hugging Face: TODO(juhi): add Hugging Face profile URL, or remove this line
+
+## Flagship projects
+
+### Electoral Equilibrium
+
+Electoral Equilibrium is a stochastic-optimization framework that models how a political party's winning voter coalition must structurally rebalance after a hypothetical political shock (e.g. an economic crisis, a scandal, an October surprise). It is prescriptive rather than predictive: instead of asking "who is winning," it asks "what would a coalition have to change to still win if the world shifted overnight." Built as a Claremont McKenna Summer Research Program 2026 project, advised by Prof. Gaston Espinosa.
+
+How it works — a three-stage pipeline streamed to the browser over Server-Sent Events:
+1. Shock interpretation: a fine-tuned Mistral 7B model (QLoRA, with constrained/structured decoding) reads free-text describing an event and estimates a per-stratum loyalty shift (Δμ) across every demographic bloc.
+2. Coalition optimization: a CVXPY disciplined-quasiconvex (DQCP) optimizer rebalances the race/ethnicity weights to maximize the probability of winning, subject to feasibility constraints.
+3. Win-probability simulation: a Monte Carlo simulation over a logistic-normal (isometric-log-ratio, ILR) distribution with N = 10,000+ draws produces a point estimate of P(win) with a 90% confidence interval.
+
+Modeling details: the electorate is partitioned into 15 demographic blocs across three parallel strata — Race/ethnicity (5), Religion (7), Gender (3) — calibrated on roughly 20 U.S. presidential cycles (1948–2024). Data scarcity (only ~20 elections) is the central modeling challenge the architecture is designed around. Iterative proportional fitting on 20 cycles yields raked stratum weights of race 0.114, religion 0.224, gender 0.662 — a calibration result reflecting temporal variance, not individual-level causal importance. Social- and news-signal collection (Bluesky, Apify) and RoBERTa-based scoring support the empirical grounding layer. It is a research tool, not an election forecast.
+
+- Live demo: https://electoral.juhi.studio
+- Source: https://github.com/juhidamley/electoral-equilibrium
+- Writeup: https://juhi.studio/projects/electoral-equilibrium
+- Stack: Python, Mistral 7B + QLoRA (PEFT), CVXPY (DQCP), NumPy/SciPy Monte Carlo (logistic-normal ILR), RoBERTa, Next.js (App Router, SSE streaming), Modal / vLLM inference.
+
+### LectureTeX
+
+LectureTeX is an AI pipeline that turns lecture audio or video into structured, compile-ready LaTeX PDF study notes. It transcribes speech, classifies content by importance, and emits clean LaTeX that compiles with zero manual fixing — producing focused notes instead of a raw transcript dump.
+
+How it works: faster-whisper (large-v3) transcribes the audio on a Modal A100; a single subject-aware LLM call turns the transcript into structured notes that keep the important content (the model is selectable — Claude Haiku/Sonnet or an NVIDIA NIM model such as Llama 3.3 70B, DeepSeek-R1, or Qwen3-Coder); a tcolorbox callout system and TikZ/pgfplots render visual, exam-ready notes; and pdflatex compiles them inside the Modal container, with an LLM-based repair loop fixing any LaTeX errors automatically. Output depth is configurable — standard 8–12 pages, concise 5–8 pages, or detailed 12–18 pages per ~50-minute lecture. It runs as a web app at lecturetex.juhi.studio (record or upload a lecture, get a compiled PDF — no local setup). GPU transcription runs on Modal A100s (30–45s vs. 4–8 min on a laptop), orchestrated via DigitalOcean MCP.
+
+- Live demo: https://lecturetex.juhi.studio
+- Source: https://github.com/juhidamley/lecturetex
+- Writeup: https://juhi.studio/projects/lecturetex
+- Stack: Python, faster-whisper, Anthropic Claude API, LaTeX (pdflatex/latexmk), ffmpeg, Modal (A100 serverless), DigitalOcean MCP, FastAPI, React + Vite web UI.
+
+## Other projects
+
+- Prioritize — a collaborative, real-time task manager built around pairwise (Beli-style) ranking with binary-insertion sort, nested sub-queues, and Supabase realtime collaboration. Live: https://ptz.juhi.studio · Stack: React, Vite, Tailwind, Supabase.
+- Optimized Indexation — research on mean-variance portfolio optimization that preserves the index property under changes to the asset universe (Financial Economics Institute, advised by Prof. Benjamin Gillen). Source: https://github.com/juhidamley
+- Additional projects (WakeMe, Stylometric Analysis, Spotify Statistical Analysis, and others) are listed at https://juhi.studio/projects
+
+## Contact
+
+- Email: jdamley28@cmc.edu
+- Site: https://juhi.studio

@@ -1,38 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { ReactNode } from 'react';
-
-// Reusable RetroWindow (matches your other pages)
-const RetroWindow = ({ title, icon, children, className = '', onClose }: { title: string, icon: string, children: ReactNode, className?: string, onClose?: () => void }) => (
-  <div className={`bg-[#c0c0c0] border-t-2 border-l-2 border-b-2 border-r-2 border-t-white border-l-white border-b-black border-r-black flex flex-col shadow-xl ${className}`}>
-    <div className="bg-gradient-to-r from-[#000080] to-[#1084d0] text-white px-2 py-1 flex justify-between items-center shrink-0">
-      <div className="flex items-center gap-2">
-        <span className="text-sm">{icon}</span>
-        <h2 className="font-bold text-xs md:text-sm tracking-wide truncate">{title}</h2>
-      </div>
-      <div className="flex gap-1 shrink-0 ml-2">
-        <button className="bg-[#c0c0c0] w-4 h-4 border-t border-l border-t-white border-l-white border-b-black border-r-black text-black font-bold text-[10px] flex items-center justify-center">_</button>
-        <button className="bg-[#c0c0c0] w-4 h-4 border-t border-l border-t-white border-l-white border-b-black border-r-black text-black font-bold text-[10px] flex items-center justify-center">□</button>
-        <button onClick={onClose} className="bg-[#c0c0c0] w-4 h-4 border-t border-l border-t-white border-l-white border-b-black border-r-black text-black font-bold text-[10px] flex items-center justify-center hover:bg-red-400 active:border-inset">X</button>
-      </div>
-    </div>
-    <div className="p-2 flex-1 flex flex-col">{children}</div>
-  </div>
-);
-
-// Retro Button Component
-const RetroButton = ({ onClick, children, active = false, className = '' }: { onClick: () => void, children: ReactNode, active?: boolean, className?: string }) => (
-  <button
-    onClick={onClick}
-    className={`px-4 py-1 font-bold text-xs md:text-sm focus:outline-none 
-      ${active 
-        ? 'bg-[#c0c0c0] border-t-2 border-l-2 border-b-2 border-r-2 border-t-black border-l-black border-b-white border-r-white text-gray-700' 
-        : 'bg-[#c0c0c0] border-t-2 border-l-2 border-b-2 border-r-2 border-t-white border-l-white border-b-black border-r-black text-black active:border-t-black active:border-l-black active:border-b-white active:border-r-white'} 
-      ${className}`}
-  >
-    {children}
-  </button>
-);
+import { RetroWindow } from '../../app/components/retro/RetroWindow';
+import { RetroButton } from '../../app/components/retro/RetroButton';
+import { Taskbar } from '../../app/components/retro/Taskbar';
 
 export function Pomodoro() {
   const navigate = useNavigate();
@@ -103,16 +73,19 @@ export function Pomodoro() {
   const progressPercent = ((totalModeTime - timeLeft) / totalModeTime) * 100;
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 relative font-sans">
-      
-      <RetroWindow 
-        title="pomo_timer.exe" 
-        icon="⏱️" 
+    <div className="min-h-screen w-full flex items-center justify-center p-4 pb-16 relative font-sans">
+      <h1 className="sr-only">Pomodoro Timer — Juhi Damley</h1>
+
+      <RetroWindow
+        title="pomo_timer.exe"
+        icon="⏱️"
+        windowId="pomodoro"
         className="w-full max-w-md"
-        onClose={() => navigate('/study')}
+        bodyClassName="p-2"
+        onClose={() => navigate('/studyTools')}
       >
         {/* Top Toolbar */}
-        <div className="flex gap-4 px-2 pb-2 mb-4 border-b border-gray-500 text-xs">
+        <div className="flex gap-4 px-2 pb-2 mb-4 border-b border-gray-500 text-xs" aria-hidden="true">
           <span className="hover:bg-blue-800 hover:text-white px-1 cursor-pointer">File</span>
           <span className="hover:bg-blue-800 hover:text-white px-1 cursor-pointer">Options</span>
           <span className="hover:bg-blue-800 hover:text-white px-1 cursor-pointer">Help</span>
@@ -196,16 +169,7 @@ export function Pomodoro() {
         </div>
       </RetroWindow>
 
-      {/* Taskbar */}
-      <div className="fixed bottom-0 left-0 right-0 h-8 bg-[#c0c0c0] border-t-2 border-white flex items-center px-1 z-50">
-        <button onClick={() => navigate('/')} className="bg-[#c0c0c0] border-t-2 border-l-2 border-b-2 border-r-2 border-t-white border-l-white border-b-black border-r-black px-2 h-6 font-bold text-black flex items-center gap-1 active:border-inset text-xs">
-          <span>⊞</span> Start
-        </button>
-        <div className="w-px h-5 bg-gray-400 mx-2 border-r border-white"></div>
-        <div className="bg-[#c0c0c0] border-t-2 border-l-2 border-b-2 border-r-2 border-t-black border-l-black border-b-white border-r-white px-2 h-6 flex items-center text-xs font-bold text-gray-800">
-          ⏱️ pomo_timer.exe
-        </div>
-      </div>
+      <Taskbar />
     </div>
   );
 }

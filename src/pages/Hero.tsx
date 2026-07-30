@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useNavigate } from 'react-router';
 
 const CELL_SIZE = 50;
@@ -10,25 +10,33 @@ const G_MID = 'rgba(0,255,65,0.6)';
 const G_BG  = 'rgba(0,255,65,0.07)';
 
 const NAV_ITEMS = [
-  { label: 'home',       path: '/' },
-  { label: 'about',      path: '/about' },
-  { label: 'links',      path: '/links' },
-  { label: 'resume',     path: '/resume' },
-  { label: 'projects',   path: '/projects' },
-  { label: 'research',   path: '/research' },
-  { label: 'contact',    path: '/contact' },
-  { label: 'study',      path: '/studyTools' },
-  { label: 'prioritize', path: 'https://ptz.juhi.studio' },
-  { label: 'lecturetex', path: 'https://lecturetex.juhi.studio' },
-  { label: 'devlog',     path: 'https://devlog.juhi.studio' },
+  { label: 'home',                 path: '/' },
+  { label: 'about',                path: '/about' },
+  { label: 'links',                path: '/links' },
+  { label: 'resume',               path: '/resume' },
+  { label: 'projects',             path: '/projects' },
+  { label: 'research',             path: '/research' },
+  { label: 'contact',              path: '/contact' },
+  { label: 'study',                path: '/studyTools' },
+  { label: 'prioritize',           path: 'https://ptz.juhi.studio' },
+  { label: 'lecturetex',           path: 'https://lecturetex.juhi.studio' },
+  { label: 'devlog',               path: 'https://devlog.juhi.studio' },
+  { label: 'electoral-equilibrium', path: 'https://electoral.juhi.studio' },
 ];
+
+type HistoryEntry = { cmd: string; out: string[] };
 
 export default function Hero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const historyRef = useRef<HTMLDivElement>(null);
+  const matrixRef = useRef(false);
   const [expanded, setExpanded] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [aliveCount, setAliveCount] = useState(0);
   const [showHint, setShowHint] = useState(false);
+  const [input, setInput] = useState('');
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const navigate = useNavigate();
 
   // ── Game of Life canvas ──────────────────────────────────────────────────
@@ -76,7 +84,7 @@ export default function Hero() {
     const draw = () => {
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#fff';
+      ctx.fillStyle = matrixRef.current ? G : '#fff';
       ctx.font = `${Math.max(8, CELL_SIZE - 2)}px serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -129,6 +137,8 @@ export default function Hero() {
   useEffect(() => {
     if (!expanded) return;
     const onKey = (e: KeyboardEvent) => {
+      // the terminal input handles its own keys
+      if ((e.target as HTMLElement)?.tagName === 'INPUT') return;
       if (e.key === 'ArrowDown')  { e.preventDefault(); setSelectedIndex(i => (i + 1) % NAV_ITEMS.length); }
       if (e.key === 'ArrowUp')    { e.preventDefault(); setSelectedIndex(i => (i - 1 + NAV_ITEMS.length) % NAV_ITEMS.length); }
       if (e.key === 'Enter')      { go(NAV_ITEMS[selectedIndex]); }
@@ -141,16 +151,99 @@ export default function Hero() {
   useEffect(() => {
     if (expanded) {
       setShowHint(false);
+      // focus the prompt once the terminal has faded in (desktop only —
+      // autofocus on mobile would pop the keyboard immediately)
+      if (window.matchMedia('(min-width: 768px)').matches) {
+        const id = setTimeout(() => inputRef.current?.focus(), 450);
+        return () => clearTimeout(id);
+      }
       return;
     }
     const id = setTimeout(() => setShowHint(true), 10000);
     return () => clearTimeout(id);
   }, [expanded]);
 
+  useEffect(() => {
+    historyRef.current?.scrollTo(0, historyRef.current.scrollHeight);
+  }, [history]);
+
+  // ── Terminal commands ────────────────────────────────────────────────────
+  const runCommand = (raw: string) => {
+    const cmd = raw.trim();
+    if (!cmd) return;
+    const [name, ...args] = cmd.split(/\s+/);
+    let out: string[] = [];
+
+    switch (name.toLowerCase()) {
+      case 'help':
+        out = [
+          'available commands:',
+          "  help           show this message",
+          "  ls             list pages",
+          "  open <page>    jump to a page (e.g. open projects)",
+          "  whoami         about the author",
+          "  matrix         follow the white rabbit",
+          "  clear          clear terminal output",
+          "  exit           close the terminal",
+        ];
+        break;
+      case 'ls':
+        out = [NAV_ITEMS.map(i => i.label).join('  ')];
+        break;
+      case 'whoami':
+        out = [
+          'juhi damley — cs @ claremont mckenna college, class of 2028.',
+          'research analyst @ the financial economics institute · founder + president, girls who code claremont.',
+          'builds ML + quant systems: electoral equilibrium, lecturetex, and more.',
+          'also: retro interfaces, stochastic things, pets cats.',
+          "→ type 'open projects' or 'open resume' to dig in.",
+        ];
+        break;
+      case 'open': {
+        const target = NAV_ITEMS.find(i => i.label === (args[0] ?? '').toLowerCase());
+        if (target) {
+          setHistory(h => [...h, { cmd, out: [`opening ${target.label}...`] }]);
+          go(target);
+          return;
+        }
+        out = [`open: no such page: ${args[0] ?? ''} (try 'ls')`];
+        break;
+      }
+      case 'sudo':
+        out = ['sudo: permission denied. nice try though.'];
+        break;
+      case 'matrix':
+        matrixRef.current = true;
+        window.setTimeout(() => { matrixRef.current = false; }, 10000);
+        out = ['wake up, neo...'];
+        break;
+      case 'clear':
+        setHistory([]);
+        return;
+      case 'exit':
+        setExpanded(false);
+        return;
+      default:
+        out = [`${name}: command not found (try 'help')`];
+    }
+
+    setHistory(h => [...h, { cmd, out }]);
+  };
+
+  const onInputKeyDown = (e: ReactKeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setSelectedIndex(i => (i + 1) % NAV_ITEMS.length); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setSelectedIndex(i => (i - 1 + NAV_ITEMS.length) % NAV_ITEMS.length); }
+    else if (e.key === 'Enter') {
+      if (input.trim()) { runCommand(input); setInput(''); }
+      else go(NAV_ITEMS[selectedIndex]);
+    }
+    else if (e.key === 'Escape') { setExpanded(false); }
+  };
+
   // ── Render ───────────────────────────────────────────────────────────────
   return (
     <section className="relative w-full h-screen bg-black overflow-hidden">
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full z-0" />
+      <canvas ref={canvasRef} aria-hidden="true" className="absolute inset-0 w-full h-full z-0" />
 
       {/* ── Name ─────────────────────────────────────────────────────── */}
       <div
@@ -161,18 +254,21 @@ export default function Hero() {
           transition: 'top 0.75s cubic-bezier(0.4,0,0.2,1), transform 0.75s cubic-bezier(0.4,0,0.2,1)',
         }}
       >
-        <button
-          onClick={() => { if (!expanded) { setExpanded(true); setShowHint(false); } }}
-          className="text-4xl md:text-6xl lg:text-8xl tracking-widest text-white whitespace-nowrap select-none"
-          style={{
-            fontFamily: 'Times New Roman, serif',
-            //animation: expanded ? 'none' : 'pulsate 3s ease-in-out infinite',
-            cursor: expanded ? 'default' : 'pointer',
-            color: expanded ? G : '#ffe169',
-          }}
-        >
-          Juhi Damley
-        </button>
+        <h1 className="m-0">
+          <button
+            onClick={() => { if (!expanded) { setExpanded(true); setShowHint(false); } }}
+            aria-expanded={expanded}
+            aria-label={expanded ? 'Juhi Damley' : 'Juhi Damley — open navigation'}
+            className="text-4xl md:text-6xl lg:text-8xl tracking-widest text-white whitespace-nowrap select-none"
+            style={{
+              fontFamily: 'Times New Roman, serif',
+              cursor: expanded ? 'default' : 'pointer',
+              color: expanded ? G : '#ffe169',
+            }}
+          >
+            Juhi Damley
+          </button>
+        </h1>
       </div>
 
       {/* ── Terminal ─────────────────────────────────────────────────── */}
@@ -189,7 +285,7 @@ export default function Hero() {
         }}
       >
         {/* box top */}
-        <div style={{ color: G_MID, fontSize: '0.78rem', lineHeight: 1.4, display: 'flex', whiteSpace: 'nowrap' }}>
+        <div style={{ color: G_MID, fontSize: '0.78rem', lineHeight: 1.4, display: 'flex', whiteSpace: 'nowrap' }} aria-hidden="true">
           <span>{'┌─ juhi@studio ~ '}</span>
           <span style={{ flex: 1, overflow: 'hidden' }}>{'─'.repeat(120)}</span>
           <span>{'┐'}</span>
@@ -204,12 +300,12 @@ export default function Hero() {
           }}
         >
           {/* prompt line */}
-          <div className="px-4 py-2 text-xs" style={{ color: G_DIM }}>
+          <div className="px-4 py-2 text-xs" style={{ color: G_DIM }} aria-hidden="true">
             juhi@studio:~$ <span style={{ color: G }}>ls navigation/</span>
           </div>
 
           {/* nav items */}
-          <div className="pb-1">
+          <nav className="pb-1" aria-label="Site navigation">
             {NAV_ITEMS.map((item, i) => {
               const active = i === selectedIndex;
               return (
@@ -227,6 +323,7 @@ export default function Hero() {
                 >
                   <span
                     className="w-4 mr-2 text-center"
+                    aria-hidden="true"
                     style={{
                       color: G,
                       animation: active ? 'blink-cursor 1s step-end infinite' : 'none',
@@ -235,17 +332,60 @@ export default function Hero() {
                     {active ? '>' : ' '}
                   </span>
                   <span className="flex-1 tracking-wider">{item.label}</span>
-                  <span style={{ color: G_DIM, fontSize: '0.75rem' }}>
+                  <span aria-hidden="true" style={{ color: G_DIM, fontSize: '0.75rem' }}>
                     {item.path.startsWith('https://') ? item.path.replace('https://', '') : item.path}
                   </span>
                 </button>
               );
             })}
+          </nav>
+
+          {/* command history */}
+          {history.length > 0 && (
+            <div
+              ref={historyRef}
+              className="px-4 py-1 text-xs max-h-40 overflow-y-auto"
+              style={{ color: G_DIM, borderTop: '1px solid rgba(0,255,65,0.12)' }}
+              role="log"
+              aria-live="polite"
+            >
+              {history.map((entry, i) => (
+                <div key={i} className="mt-1">
+                  <div>
+                    juhi@studio:~$ <span style={{ color: G }}>{entry.cmd}</span>
+                  </div>
+                  {entry.out.map((line, j) => (
+                    <div key={j} className="whitespace-pre-wrap">{line}</div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* live prompt */}
+          <div
+            className="px-4 py-2 text-xs flex items-center"
+            style={{ color: G_DIM, borderTop: '1px solid rgba(0,255,65,0.12)' }}
+          >
+            <span className="shrink-0" aria-hidden="true">juhi@studio:~$&nbsp;</span>
+            <input
+              ref={inputRef}
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={onInputKeyDown}
+              aria-label="Terminal command input — type 'help' for commands"
+              spellCheck={false}
+              autoComplete="off"
+              autoCapitalize="off"
+              className="flex-1 bg-transparent outline-none border-none text-xs placeholder:text-[#00ff41]/25"
+              style={{ color: G, caretColor: G, fontFamily: 'inherit' }}
+              placeholder="type 'help'"
+            />
           </div>
 
           {/* hint line */}
           <div
-            className="px-4 py-2 text-xs flex gap-5"
+            className="px-4 py-2 text-xs flex flex-wrap gap-x-5 gap-y-1"
             style={{
               color: G_DIM,
               borderTop: `1px solid rgba(0,255,65,0.12)`,
@@ -254,11 +394,12 @@ export default function Hero() {
             <span>↑↓ navigate</span>
             <span>↵ open</span>
             <span>esc close</span>
+            <span>'help' commands</span>
           </div>
         </div>
 
         {/* box bottom */}
-        <div style={{ color: G_MID, fontSize: '0.78rem', lineHeight: 1.4, display: 'flex', whiteSpace: 'nowrap' }}>
+        <div style={{ color: G_MID, fontSize: '0.78rem', lineHeight: 1.4, display: 'flex', whiteSpace: 'nowrap' }} aria-hidden="true">
           <span>{'└'}</span>
           <span style={{ flex: 1, overflow: 'hidden' }}>{'─'.repeat(120)}</span>
           <span>{'┘'}</span>

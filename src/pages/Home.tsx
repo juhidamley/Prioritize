@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router';
+import { Taskbar } from '../app/components/retro/Taskbar';
 
 const DESIGN_WIDTH = 1366;
 const DESIGN_HEIGHT = 768;
@@ -36,7 +37,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Prioritize', icon: '/assets/prioritize.svg', path: 'https://ptz.juhi.studio', x: 707.2, y: 392.5, w: 141.8, h: 149.2 },
   { label: 'Projects', icon: '/assets/projects.svg', path: '/projects', x: 878.4, y: 195.3, w: 141.8, h: 163.8 },
   { label: 'Research', icon: '/assets/research.svg', path: '/research', x: 878.4, y: 392.5, w: 141.8, h: 149.2 },
-  { label: "LectureTeX", icon: '/assets/lectureTex_icon.svg', path: '/lecturetex', x: 511.8, y: 555, w: 141.8, h: 149.2 },
+  { label: "LectureTeX", icon: '/assets/lectureTex_icon.svg', path: 'https://lecturetex.juhi.studio', x: 511.8, y: 555, w: 141.8, h: 149.2 },
 ];
 
 const TAPE_ITEMS: TapeItem[] = [
@@ -66,7 +67,8 @@ export function Home() {
       className="relative md:fixed inset-0 min-h-dvh md:h-dvh w-screen bg-[#1a0b2e] md:bg-[url('/assets/landing.svg')] md:bg-cover md:bg-center overflow-x-hidden overflow-y-auto md:overflow-hidden"
     >
       {/* Background Glow */}
-      <div className="absolute inset-0 bg-radial-gradient from-purple-600/10 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-radial from-purple-600/10 to-transparent pointer-events-none" />
+      <h1 className="sr-only">Desktop — Juhi Damley</h1>
 
       {/* Main Layout Container */}
       <div className="relative z-10 w-full min-h-full flex flex-col items-center justify-center p-6 md:p-0 md:block">
@@ -77,6 +79,7 @@ export function Home() {
           {NAV_ITEMS.map((item) => (
             <button
               key={item.label}
+              aria-label={item.label}
               onClick={() => {
                 if (item.path.startsWith('https://')) {
                   window.location.href = item.path;
@@ -138,6 +141,8 @@ export function Home() {
           ))}
         </div>
       )}
+
+      <Taskbar />
     </div>
   );
 }
