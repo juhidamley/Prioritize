@@ -30,26 +30,27 @@ const PROJECTS = [
   file: 'lecturetex.py',
   title: 'LectureTeX',
   tech: 'Python, Faster Whisper, Anthropic Claude, NVIDIA NIM APIs, Modal (A100 serverless), DigitalOcean MCP, FastAPI, React, Vite, LaTeX, FFmpeg',
-    desc: `LectureTeX is an end-to-end AI pipeline that turns lectures into publication-quality PDF study notes in minutes.
+    desc: `LectureTeX is an end-to-end AI pipeline that turns lecture audio or video into publication-quality PDF study notes in minutes.
 
-  It accepts three input types: live recordings, uploaded audio files, and cloud-sharing links.
+The web app accepts four working input types — live browser recording, uploaded audio/video files, pasted transcripts, and cloud-share links (Dropbox, Box, Google Drive) — plus a fifth "PDF/textbook" tab that's in the UI but not fully wired end-to-end yet.
 
-  The pipeline runs on NVIDIA A100 GPUs via Modal serverless infrastructure and follows three stages:
+The pipeline runs on NVIDIA A100 GPUs via Modal serverless infrastructure and follows four stages:
 
-  1. **Transcription**  
-    Audio is transcribed with Faster Whisper (large-v3). Low-confidence spans are filtered, overlapping chunks are deduplicated, and uploaded/link-based media is pre-compressed with FFmpeg for faster transfer.
-  2. **Note generation**  
-    Transcripts are sent to an LLM (Claude, Llama, DeepSeek, Qwen, Mistral, Gemma, Phi, Nemotron, and others) using subject-aware prompts and a four-tier importance hierarchy.
-  3. **Compilation and cleanup**  
-    LaTeX output is deterministically cleaned (references, labels, operators, malformed blocks, markdown artifacts) and compiled with pdflatex using a full texlive install.
+**Transcription**
+Audio is transcribed with Faster Whisper (large-v3, float16, beam size 2). Segments below an average log-probability of ‑1.0 are dropped as low-confidence, uploaded/linked media is pre-compressed with FFmpeg (16kHz mono) before transfer, and cloud-share links are pulled down with aria2c.
 
-  Output depth is configurable:
+**Note generation**
+The transcript is sent in a single subject-aware LLM call to one of ten selectable models: Claude Haiku 4.5 or Sonnet 4.6 via the Anthropic API, or eight NVIDIA NIM models (Llama 3.3 70B, Llama 3.1 405B, Nemotron Ultra 253B, DeepSeek-R1, Gemma 3 27B, Qwen3-Coder 480B, Mistral Large 2, Phi-4). A subject-specific prompt — one of 13 subjects, from mathematics to law — tells the model what to keep (definitions, theorems, worked examples) and what to compress.
 
-  - **Concise:** 4-6 pages
-  - **Standard:** 8-12 pages
-  - **Detailed:** 14-18 pages
+**Structured rendering and compilation**
+Notes are wrapped in a LaTeX preamble defining tcolorbox callouts (including exam-logistics/exam-content boxes), theorem environments, and TikZ/pgfplots, then compiled with pdflatex inside a Modal container running a full TeX Live install. If a compile fails, the error log is parsed with source context and sent to Qwen2.5-Coder (via NVIDIA NIM) to fix it — up to three pdflatex passes per round across two repair rounds.
 
-  LectureTeX runs as a web app at lecturetex.juhi.studio over a FastAPI backend, with GPU work dispatched to Modal A100s and orchestrated via DigitalOcean MCP.`,
+Output depth is configurable:
+- Concise: 5–8 pages
+- Standard: 8–12 pages
+- Detailed: 12–18 pages
+
+LectureTeX ships today as a web app (React + Vite, hosted on Vercel) that proxies through a FastAPI orchestration server on a DigitalOcean droplet, which dispatches jobs to Modal via webhook and polls for results. An earlier iteration also included an Electron desktop app and a Python CLI built around a from-scratch four-tier content-importance classifier; both are now legacy and not deployed — the live pipeline uses a simpler single-call, subject-aware prompt in their place.`,
   icon: '🎓',
   link: 'https://lecturetex.juhi.studio',
   writeup: 'lecturetex',

@@ -36,10 +36,10 @@ export function About() {
               <span className="font-bold">Areas:</span> Machine Learning, Financial Engineering, Stochastic Modeling, Software Architecture
             </p>
             <p className="mb-2 font-sans text-sm">
-              <span className="font-bold">Roles:</span> Software Engineer, Forward Deployed Engineer, Data Scientist, Product Manager
+              <span className="font-bold">Roles:</span> Product Manager, Forward Deployed Engineer, Product Builder
             </p>
             <p className="mb-4 font-sans text-sm">
-              <span className="font-bold">Industries:</span> Finance, Consumer Technology, Social Media, Defense, AI
+              <span className="font-bold">Industries:</span> Consumer Technology, Social Media, Defense, AI
             </p>
 
             {/* Where to next — outbound CTA links (Win95 button chrome) */}

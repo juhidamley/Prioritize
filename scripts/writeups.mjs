@@ -3,7 +3,7 @@
 // crawlable HTML at dist/projects/<slug>/index.html.
 //
 // GROUNDING RULE: every number here is sourced from the project's own repo docs
-// or code. Anything unverifiable is marked `TODO(juhi):` and must be filled in
+// or code. Anything unverifiable is marked `TO DO(juhi):` and must be filled in
 // (or removed) before publishing — never invent metrics.
 
 export const SITE = 'https://juhi.studio';
@@ -21,7 +21,7 @@ export const writeups = [
     repoUrl: 'https://github.com/juhidamley/electoral-equilibrium',
     languages: ['Python', 'TypeScript'],
     appCategory: 'Research / DeveloperApplication',
-    // TODO(juhi): record a ~15s screen capture of the live demo and drop it at
+    // TO DO(juhi): record a ~15s screen capture of the live demo and drop it at
     // public/assets/demos/electoral-equilibrium.mp4, then set src below.
     demo: { src: null, poster: null, caption: 'Type a shock → watch the coalition rebalance and the win-probability update live.' },
     // One dense direct-answer sentence — no throat-clearing.
@@ -93,45 +93,51 @@ export const writeups = [
     repoUrl: 'https://github.com/juhidamley/lecturetex',
     languages: ['Python', 'TypeScript'],
     appCategory: 'DeveloperApplication / EducationalApplication',
-    // TODO(juhi): record a ~15s screen capture (lecture audio → compiled PDF) at
+    // to do record a ~15s screen capture (lecture audio → compiled PDF) at
     // public/assets/demos/lecturetex.mp4, then set src below.
     demo: { src: null, poster: null, caption: 'A lecture recording becomes a structured, compile-ready LaTeX PDF.' },
     lede:
-      'LectureTeX is a web app that converts lecture audio or video into a structured, compile-ready LaTeX PDF of study notes — transcribing speech with faster-whisper (large-v3) on an A100, turning the transcript into focused notes with your choice of LLM, and compiling clean LaTeX automatically, repairing its own errors when a compile fails.',
+      'LectureTeX is a web app that turns lecture audio or video into structured, compile-ready LaTeX study notes. It transcribes the recording with faster-whisper (large-v3) on an A100, turns that transcript into focused notes using an LLM of your choice, then compiles clean LaTeX automatically — repairing its own errors if a compile fails.',
     context:
-      'It produces focused notes instead of a raw transcript dump: roughly 8–12 pages per ~50-minute lecture at standard depth (configurable to 5–8 or 12–18). It runs as a web app at lecturetex.juhi.studio — record or upload a lecture and it returns a compiled PDF, no local setup required.',
+      'LectureTeX produces focused notes rather than a raw transcript dump — roughly 8–12 pages for a ~50-minute lecture at standard depth, configurable down to 5–8 pages (concise) or up to 12–18 (detailed). It runs entirely as a web app at lecturetex.juhi.studio: record from your mic, upload a video or audio file, paste a transcript, or drop in a Dropbox, Box, or Drive share link, and it returns a compiled PDF with no local LaTeX toolchain required. A "PDF/textbook" input tab exists in the UI but isn’t fully wired end-to-end yet.',
     sections: [
       {
         h2: 'How it works',
-        body: 'LectureTeX runs a staged pipeline from audio to compiled PDF:',
+        body: 'LectureTeX runs a staged pipeline, entirely inside a single Modal A100 function, that carries a lecture from raw audio to a compiled PDF:',
         steps: [
-          'Transcription — faster-whisper (large-v3) transcribes the lecture audio on a Modal A100 GPU, running in roughly 30–45 seconds versus 4–8 minutes on a laptop; low-confidence segments are dropped.',
-          'Note generation — a single subject-aware LLM call turns the transcript into structured notes, keeping definitions, theorems, and worked examples while compressing filler. You pick the model — Claude (Haiku/Sonnet) or one of several NVIDIA NIM models (Llama 3.3 70B, DeepSeek-R1, Qwen3-Coder, and more).',
-          'Structured rendering — the notes are wrapped in a preamble with a tcolorbox callout system and TikZ/pgfplots for visually structured, exam-ready output.',
-          'Compile with automated repair — pdflatex runs inside the Modal container (full TeX Live); if a compile fails, the errors are parsed with source context and sent to a code model to fix, up to three passes with two repair rounds, returning the best PDF.',
+          'Transcription. faster-whisper (large-v3) transcribes the lecture audio on a Modal A100 GPU using float16 precision and a beam size of 2 — the project’s own docs put this at roughly 30–45 seconds, versus 4–8 minutes on a laptop. Segments with an average log-probability below ‑1.0 are treated as low-confidence and dropped.',
+          'Note generation. A single subject-aware LLM call turns the transcript into structured notes, preserving definitions, theorems, and worked examples while compressing filler. You choose the model — Claude Haiku 4.5 or Sonnet 4.6 via Anthropic, or one of eight NVIDIA NIM models (Llama 3.3 70B, Llama 3.1 405B, Nemotron Ultra 253B, DeepSeek-R1, Gemma 3 27B, Qwen3-Coder 480B, Mistral Large 2, or Phi-4) — ten models in total.',
+          'Structured rendering. The notes are wrapped in a LaTeX preamble built around a tcolorbox callout system — including dedicated exam-logistics and exam-content boxes — amsthm theorem environments, and TikZ/pgfplots, producing visually structured, exam-ready output.',
+          'Compile with automated repair. pdflatex runs inside the Modal container, a CUDA and Python 3.11 image with a full TeX Live install. If a compile fails, the errors are parsed with source context and sent to Qwen2.5-Coder (via NVIDIA NIM) to fix — up to three pdflatex passes per round across two repair rounds — and the best PDF produced is returned.',
         ],
+      },
+      {
+        h2: 'From local CLI to web app',
+        body:
+          'LectureTeX didn’t start out this way. The original version was a local Python CLI built around faster-whisper transcription, a hand-built four-tier content-importance classifier (core material, supporting context, reference-only, or skip), and compilation through the VSCode LaTeX Workshop extension, all wrapped in an Electron desktop GUI. That code still lives in the repo for reference, but it’s no longer what’s deployed: the live product runs the pipeline above — a single Modal function behind a FastAPI job broker — and the CLI, the four-tier classifier, and the Electron app are legacy.',
       },
       {
         h2: 'Technical stack',
         table: [
-          ['Transcription', 'faster-whisper (large-v3) on Modal A100 GPUs'],
-          ['Note generation', 'Choice of 10 models — Claude (Haiku/Sonnet) or NVIDIA NIM (Llama, DeepSeek, Qwen, Nemotron…)'],
+          ['Transcription', 'faster-whisper (large-v3) on a Modal A100 GPU'],
+          ['Note generation', 'Choice of 10 models — Claude (Haiku 4.5 / Sonnet 4.6) via Anthropic, or 8 NVIDIA NIM models (Llama, DeepSeek, Qwen, Nemotron, Gemma, Mistral, Phi)'],
           ['Document generation', 'LaTeX with tcolorbox callouts and TikZ/pgfplots'],
-          ['Compilation', 'pdflatex in a Modal container (full TeX Live), with an LLM error-repair loop'],
+          ['Compilation', 'pdflatex in a Modal container (full TeX Live), with an LLM error-repair loop (Qwen2.5-Coder via NVIDIA NIM)'],
           ['Media handling', 'ffmpeg (compression), aria2c (link downloads)'],
-          ['Interface', 'Web app (React + Vite)'],
-          ['Orchestration', 'Vercel proxy → FastAPI job server on a DigitalOcean droplet → Modal A100'],
+          ['Interface', 'Web app (React + Vite, hosted on Vercel)'],
+          ['Orchestration', 'Vercel proxy → FastAPI job broker on a DigitalOcean droplet → Modal A100'],
         ],
       },
       {
         h2: 'Results & validation',
         body:
-          'Output depth is configurable: standard 8–12 pages, concise 5–8 pages, or detailed 12–18 pages per ~50-minute lecture — versus 40+ pages under uniform compression. An automated compile-repair loop (up to three pdflatex passes with two LLM repair rounds) returns a finished PDF without manual LaTeX fixing. TODO(juhi): add a measured compile-success rate or transcription-accuracy figure if you want to cite one.',
+          'Output depth is configurable — standard runs 8–12 pages, concise 5–8, and detailed 12–18 pages per ~50-minute lecture, compared with 40+ pages under uniform compression. The automated compile-repair loop, up to three pdflatex passes per round across two LLM repair rounds, returns a finished PDF without any manual LaTeX fixing. '
+        // TO DO(juhi): add a measured compile-success rate or transcription-accuracy figure if you want to cite one — none is currently logged or benchmarked in the repo.',
       },
       {
         h2: 'Limitations',
         body:
-          'Everything runs server-side through the web app, so there is no local LaTeX install to manage. Transcription quality still depends on audio clarity, and highly non-standard notation or heavy cross-talk can require review.',
+          'Everything runs server-side through the web app, so there’s no local LaTeX install to manage. Transcription quality still depends on audio clarity, and heavily non-standard notation or cross-talk can require manual review. The compile-repair loop is best-effort, not a guarantee. Two known gaps as of this writing: the "PDF/textbook" input tab and the custom-instructions field both exist in the UI but aren’t fully wired end-to-end yet.',
       },
     ],
     faq: [
@@ -141,11 +147,15 @@ export const writeups = [
       },
       {
         q: 'How does LectureTeX turn a lecture into LaTeX notes?',
-        a: 'It transcribes the audio with faster-whisper (large-v3) on a Modal A100, uses your chosen model to turn the transcript into structured notes that keep the important content, renders them with tcolorbox callouts and TikZ, then compiles with pdflatex — automatically repairing LaTeX errors with a code model if the first compile fails.',
+        a: 'It transcribes the audio with faster-whisper (large-v3) on a Modal A100, sends the transcript to your chosen model in a single subject-aware call, wraps the result in a LaTeX preamble with tcolorbox callouts and TikZ, then compiles it with pdflatex — automatically repairing errors with Qwen2.5-Coder if the first compile fails.',
       },
       {
         q: 'How long are the notes LectureTeX produces?',
-        a: 'Roughly 8–12 pages per 50-minute lecture at standard depth, configurable to 5–8 pages (concise) or 12–18 pages (detailed), instead of a 40+ page uniform transcript.',
+        a: 'Roughly 8–12 pages for a 50-minute lecture at standard depth, configurable to 5–8 pages (concise) or 12–18 pages (detailed) — instead of a 40+ page uniform transcript.',
+      },
+      {
+        q: 'Did LectureTeX always work this way?',
+        a: 'No. It started as a local CLI with a four-tier content classifier and an Electron GUI, compiling through VSCode’s LaTeX Workshop extension. It’s since been rebuilt as a serverless web app, where a single Modal A100 function handles transcription, note generation, and LaTeX compilation, invoked by a FastAPI job broker on a DigitalOcean droplet behind a Vercel-hosted frontend.',
       },
     ],
   },
@@ -191,7 +201,8 @@ export const writeups = [
       {
         h2: 'Results & validation',
         body:
-          'On the Ken French 48-industry dataset (1973–2023, annual rebalancing), the long-only Global Minimum Variance portfolio beat the 1/N equal-weight benchmark on both risk-adjusted return and drawdown: at a 30-name universe, Sharpe 1.03 vs 0.76 and maximum drawdown −33% vs −53%. Reproducibility is test-enforced — identical configs produce byte-identical outputs — and a full 51-year CRSP-scale run completed on the Rutgers Hopper cluster in under an hour on a single CPU. TODO(juhi): add the CRSP paper-baseline results (N = 100 / 250 / 500) once they are published to the repo.',
+          'On the Ken French 48-industry dataset (1973–2023, annual rebalancing), the long-only Global Minimum Variance portfolio beat the 1/N equal-weight benchmark on both risk-adjusted return and drawdown: at a 30-name universe, Sharpe 1.03 vs 0.76 and maximum drawdown −33% vs −53%. Reproducibility is test-enforced — identical configs produce byte-identical outputs — and a full 51-year CRSP-scale run completed on the Rutgers Hopper cluster in under an hour on a single CPU.'
+        // TO DO(juhi): add the CRSP paper-baseline results (N = 100 / 250 / 500) once they are published to the repo.',
       },
       {
         h2: 'Limitations',
