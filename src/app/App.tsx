@@ -10,8 +10,15 @@ export function App() {
 
   useEffect(() => {
     store.initializeAuth();
-    // ... rest of your auth logic
   }, [store]);
+
+  // Live sync across tabs/devices. subscribeToRealtime() is a no-op while
+  // signed out, and re-runs when a user signs in or out so the channel follows
+  // the session. It returns undefined for guests, hence the optional call.
+  useEffect(() => {
+    const unsubscribe = store.subscribeToRealtime();
+    return () => unsubscribe?.();
+  }, [store, state.user?.id]);
 
   if (state.isLoading) {
     return <div className="flex items-center justify-center h-screen bg-black text-white">Loading...</div>;

@@ -1,38 +1,49 @@
+// Prioritize app store.
+//
+// Data lives in Neon and is reached over /api/queues and /api/tasks (see
+// src/app/api.ts). Supabase remains in two roles only: the identity provider
+// behind supabase.auth, and the Realtime transport used to tell other tabs and
+// devices that something changed — see subscribeToRealtime() below.
+//
+// Guest mode is unchanged: with no signed-in user everything stays in
+// localStorage and no request is made.
+
 import { Queue, Task, AppState } from './types';
 import { supabase } from '../../utils/supabase/client';
-import type { User } from '@supabase/supabase-js';
+import { api, ApiQueue, ApiTask } from './api';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
-const defaultPalette = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#a855f7'];
+const LOCAL_KEY = 'prioritize_local_data';
 
-const initialQueues: Queue[] = [
-  {
-    id: 'queue-1',
-    name: 'Work Tasks',
-    color: '#3b82f6',
-    palette: defaultPalette,
-    tasks: [
-      { id: 'task-1', title: 'Finish project proposal', description: 'Complete the Q2 project proposal document', color: '#ef4444', createdAt: new Date().toISOString(), sort_order: 100 },
-      { id: 'task-2', title: 'Review code', description: 'Review pull requests from team', color: '#f97316', createdAt: new Date().toISOString(), sort_order: 200 },
-      { id: 'task-3', title: 'Team meeting preparation', color: '#eab308', createdAt: new Date().toISOString(), sort_order: 300 },
-    ],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'queue-2',
-    name: 'Personal',
-    color: '#10b981',
-    palette: defaultPalette,
-    tasks: [
-      { id: 'task-4', title: 'Grocery shopping', color: '#22c55e', createdAt: new Date().toISOString(), sort_order: 100 },
-      { id: 'task-5', title: 'Call dentist', color: '#3b82f6', createdAt: new Date().toISOString(), sort_order: 200 },
-    ],
-    createdAt: new Date().toISOString(),
-  },
-];
+// Postgres hands back snake_case; the components want the camelCase shapes in
+// ./types. These two mappers are the only place that translation happens.
+function toTask(t: ApiTask): Task {
+  return {
+    id: t.id,
+    title: t.title,
+    description: t.description ?? undefined,
+    color: t.color ?? undefined,
+    subQueueId: t.sub_queue_id ?? undefined,
+    createdAt: t.created_at,
+    sort_order: t.sort_order,
+  };
+}
+
+function toQueue(q: ApiQueue): Queue {
+  return {
+    id: q.id,
+    name: q.name,
+    color: q.color,
+    palette: q.palette,
+    parentTaskId: q.parent_task_id ?? undefined,
+    createdAt: q.created_at,
+    tasks: (q.tasks || []).map(toTask),
+  };
+}
 
 class AppStore {
   private state: AppState = {
-    queues: [], // We'll fetch these from the DB later
+    queues: [],
     currentQueueId: null,
     user: null,
     isLoading: true,
@@ -40,7 +51,12 @@ class AppStore {
 
   private listeners: Set<() => void> = new Set();
 
+  // Supabase Realtime channel used purely as a pub/sub pipe (see
+  // subscribeToRealtime). Null while signed out.
+  private channel: RealtimeChannel | null = null;
+
   async signOut() {
+    this.teardownChannel();
     await supabase.auth.signOut();
     this.state.queues = []; // Clear local data on logout
     this.notify();
@@ -58,31 +74,37 @@ class AppStore {
   }
 
   private notify() {
-    this.state = { 
-      ...this.state, 
-      queues: [...this.state.queues] 
+    this.state = {
+      ...this.state,
+      queues: [...this.state.queues]
     };
-    
+
     // Save to local storage if acting as a guest
     if (!this.state.user) {
-      localStorage.setItem('prioritize_local_data', JSON.stringify(this.state.queues));
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(this.state.queues));
     }
-    
+
     this.listeners.forEach(listener => listener());
+  }
+
+  private loadLocal() {
+    const saved = localStorage.getItem(LOCAL_KEY);
+    if (saved) {
+      try { this.state.queues = JSON.parse(saved); } catch (e) { this.state.queues = []; }
+    } else {
+      this.state.queues = [];
+    }
   }
 
   async initializeAuth() {
     const { data: { session } } = await supabase.auth.getSession();
     this.state.user = session?.user ?? null;
-    
+
     if (this.state.user) {
       this.fetchQueues(); // Fetch from cloud
     } else {
       // Fetch from local browser storage
-      const saved = localStorage.getItem('prioritize_local_data');
-      if (saved) {
-        try { this.state.queues = JSON.parse(saved); } catch (e) {}
-      }
+      this.loadLocal();
       this.state.isLoading = false;
       this.notify();
     }
@@ -91,10 +113,10 @@ class AppStore {
       const newUser = session?.user ?? null;
       if (this.state.user?.id !== newUser?.id) {
          this.state.user = newUser;
+         this.teardownChannel();
          if (newUser) this.fetchQueues();
          else {
-           const saved = localStorage.getItem('prioritize_local_data');
-           this.state.queues = saved ? JSON.parse(saved) : [];
+           this.loadLocal();
            this.notify();
          }
       }
@@ -116,16 +138,15 @@ class AppStore {
     }
 
     // 2. CLOUD MODE
-    const { data, error } = await supabase.from('queues').insert({
-      name, color, palette, owner_id: this.state.user.id, parent_task_id: parentTaskId || null,
-    }).select().single();
-
-    if (error) {
+    try {
+      const { queue } = await api.createQueue({ name, color, palette, parentTaskId });
+      await this.fetchQueues();
+      this.broadcastChange();
+      return toQueue(queue);
+    } catch (error) {
       console.error('Error creating queue:', error);
       return;
     }
-    await this.fetchQueues();
-    return data;
   }
 
   async addTask(queueId: string, title: string, description?: string, explicitColor?: string) {
@@ -153,35 +174,57 @@ class AppStore {
     }
 
     // 2. CLOUD MODE
-    const { error } = await supabase.from('tasks').insert({
-      queue_id: queueId, title, description, color: taskColor, sort_order: newSortOrder,
-    });
-    if (error) console.error('Error adding task:', error);
-    this.fetchQueues(); 
+    try {
+      await api.createTask({
+        queueId, title, description, color: taskColor, sortOrder: newSortOrder,
+      });
+      await this.fetchQueues();
+      this.broadcastChange();
+    } catch (error) {
+      console.error('Error adding task:', error);
+    }
   }
 
   async updateQueue(queueId: string, updates: Partial<Queue>) {
-    const { error } = await supabase
-      .from('queues')
-      .update({ name: updates.name, color: updates.color, palette: updates.palette })
-      .eq('id', queueId);
+    // LOCAL MODE
+    if (!this.state.user) {
+      const queue = this.getQueue(queueId);
+      if (!queue) return;
+      if (updates.name !== undefined) queue.name = updates.name;
+      if (updates.color !== undefined) queue.color = updates.color;
+      if (updates.palette !== undefined) queue.palette = updates.palette;
+      this.notify();
+      return;
+    }
 
-    if (error) console.error('Error updating queue:', error);
-    else this.fetchQueues();
+    try {
+      await api.updateQueue({
+        id: queueId, name: updates.name, color: updates.color, palette: updates.palette,
+      });
+      await this.fetchQueues();
+      this.broadcastChange();
+    } catch (error) {
+      console.error('Error updating queue:', error);
+    }
   }
 
   async deleteQueue(queueId: string) {
-    // Because we set ON DELETE CASCADE in the database, deleting a queue 
-    // will automatically delete all its tasks and share records!
-    const { error } = await supabase
-      .from('queues')
-      .delete()
-      .eq('id', queueId);
-
-    if (error) console.error('Error deleting queue:', error);
-    else {
+    // LOCAL MODE
+    if (!this.state.user) {
       this.state.queues = this.state.queues.filter(q => q.id !== queueId);
       this.notify();
+      return;
+    }
+
+    // Tasks and member rows go with it: the Neon schema keeps the same
+    // ON DELETE CASCADE the Supabase schema had.
+    try {
+      await api.deleteQueue(queueId);
+      this.state.queues = this.state.queues.filter(q => q.id !== queueId);
+      this.notify();
+      this.broadcastChange();
+    } catch (error) {
+      console.error('Error deleting queue:', error);
     }
   }
 
@@ -198,27 +241,48 @@ class AppStore {
   }
 
   async updateTask(queueId: string, taskId: string, updates: Partial<Task>) {
-    const { error } = await supabase
-      .from('tasks')
-      .update({
+    // LOCAL MODE
+    if (!this.state.user) {
+      const task = this.getQueue(queueId)?.tasks.find(t => t.id === taskId);
+      if (!task) return;
+      if (updates.title !== undefined) task.title = updates.title;
+      if (updates.description !== undefined) task.description = updates.description;
+      if (updates.color !== undefined) task.color = updates.color;
+      this.notify();
+      return;
+    }
+
+    try {
+      await api.updateTask({
+        id: taskId,
         title: updates.title,
         description: updates.description,
         color: updates.color,
-      })
-      .eq('id', taskId);
-
-    if (error) console.error('Error updating task:', error);
-    else this.fetchQueues();
+      });
+      await this.fetchQueues();
+      this.broadcastChange();
+    } catch (error) {
+      console.error('Error updating task:', error);
+    }
   }
 
   async deleteTask(queueId: string, taskId: string) {
-    const { error } = await supabase
-      .from('tasks')
-      .delete()
-      .eq('id', taskId);
+    // LOCAL MODE
+    if (!this.state.user) {
+      const queue = this.getQueue(queueId);
+      if (!queue) return;
+      queue.tasks = queue.tasks.filter(t => t.id !== taskId);
+      this.notify();
+      return;
+    }
 
-    if (error) console.error('Error deleting task:', error);
-    else this.fetchQueues();
+    try {
+      await api.deleteTask(taskId);
+      await this.fetchQueues();
+      this.broadcastChange();
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
   }
 
   reorderTasks(queueId: string, dragIndex: number, hoverIndex: number) {
@@ -239,26 +303,29 @@ class AppStore {
     this.notify();
 
     // STOP HERE IF GUEST (Skip DB sync)
-    if (!this.state.user) return; 
+    if (!this.state.user) return;
 
-    supabase.from('tasks').update({ sort_order: newSortOrder }).eq('id', removed.id).then(({ error }) => {
-      if (error) console.error('Error syncing order:', error);
-    });
+    // Fire-and-forget: the local reorder above already moved the card, so this
+    // only persists it. Deliberately does not refetch — that would fight the
+    // drag still in progress.
+    api.updateTask({ id: removed.id, sortOrder: newSortOrder })
+      .then(() => this.broadcastChange())
+      .catch(error => console.error('Error syncing order:', error));
   }
 
   async createSubQueue(taskId: string, queueId: string) {
     const queue = this.getQueue(queueId);
     const task = queue?.tasks.find(t => t.id === taskId);
-    
+
     if (task && !task.subQueueId) {
       // Create the new queue, linking it to the parent task
       const subQueue = await this.addQueue(
-        `${task.title} - Subtasks`, 
-        '#8b5cf6', 
-        queue?.palette || [], 
+        `${task.title} - Subtasks`,
+        '#8b5cf6',
+        queue?.palette || [],
         taskId
       );
-      
+
       if (subQueue) {
         // 1. LOCAL MODE (Guest)
         if (!this.state.user) {
@@ -268,12 +335,13 @@ class AppStore {
         }
 
         // 2. CLOUD MODE (Logged In)
-        await supabase
-          .from('tasks')
-          .update({ sub_queue_id: subQueue.id })
-          .eq('id', taskId);
-          
-        this.fetchQueues();
+        try {
+          await api.updateTask({ id: taskId, subQueueId: subQueue.id });
+          await this.fetchQueues();
+          this.broadcastChange();
+        } catch (error) {
+          console.error('Error linking sub-queue:', error);
+        }
         return subQueue;
       }
     }
@@ -293,43 +361,11 @@ class AppStore {
     this.notify();
 
     try {
-      // Fetch queues
-      const { data: queuesData, error: queuesError } = await supabase
-        .from('queues')
-        .select('*');
-        
-      if (queuesError) throw queuesError;
-
-      // Fetch tasks
-      const { data: tasksData, error: tasksError } = await supabase
-        .from('tasks')
-        .select('*')
-        .order('sort_order', { ascending: true }); // Keep them in the right order
-
-      if (tasksError) throw tasksError;
-
-      // Assemble the data: attach tasks to their respective queues
-      const assembledQueues: Queue[] = queuesData.map(queue => ({
-        id: queue.id,
-        name: queue.name,
-        color: queue.color,
-        palette: queue.palette,
-        parentTaskId: queue.parent_task_id,
-        createdAt: queue.created_at,
-        tasks: tasksData
-          .filter(task => task.queue_id === queue.id)
-          .map(task => ({
-            id: task.id,
-            title: task.title,
-            description: task.description,
-            color: task.color,
-            subQueueId: task.sub_queue_id,
-            createdAt: task.created_at,
-            sort_order: task.sort_order, // <-- ADD THIS LINE
-          }))
-      }));
-
-      this.state.queues = assembledQueues;
+      // One request: /api/queues assembles queues with their tasks (ordered by
+      // sort_order) server-side, so there's no second query to join in JS.
+      const { queues } = await api.listQueues();
+      this.state.queues = queues.map(toQueue);
+      this.ensureChannel();
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -339,36 +375,48 @@ class AppStore {
   }
 
   // 2. The Real-time Listener
+  //
+  // Supabase Realtime is still the transport, but the mechanism changed with
+  // the move to Neon. It used to listen for `postgres_changes` on the Supabase
+  // tables; those tables no longer receive writes, so such a listener would
+  // never fire. Instead this is a Broadcast channel: whoever makes a change
+  // calls broadcastChange(), and every *other* subscriber refetches from Neon.
+  //
+  // The payload is empty on purpose — it's a "something moved, go look" ping,
+  // never the data itself, so the channel carries nothing worth intercepting.
+  private ensureChannel() {
+    if (this.channel || !this.state.user) return;
+
+    this.channel = supabase
+      .channel(`prioritize:${this.state.user.id}`)
+      .on('broadcast', { event: 'changed' }, () => {
+        // Supabase does not echo a client's own broadcasts back to it, so this
+        // only runs for changes made by another tab, device, or collaborator.
+        this.fetchQueues();
+      })
+      .subscribe();
+  }
+
+  private teardownChannel() {
+    if (this.channel) {
+      supabase.removeChannel(this.channel);
+      this.channel = null;
+    }
+  }
+
+  /** Tell other subscribers that this user's data changed. */
+  private broadcastChange() {
+    this.channel?.send({ type: 'broadcast', event: 'changed', payload: {} });
+  }
+
+  /**
+   * Start listening for changes from other clients. Safe to call more than
+   * once. Returns a cleanup function for use from a React effect.
+   */
   subscribeToRealtime() {
     if (!this.state.user) return;
-
-    // Create a real-time websocket connection to Supabase
-    const subscription = supabase
-      .channel('public-tasks-and-queues')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'tasks' },
-        (payload) => {
-          console.log('Task changed by another user!', payload);
-          // When a change is detected anywhere in the tasks table, 
-          // re-fetch the latest state to keep the UI perfectly in sync
-          this.fetchQueues();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'queues' },
-        (payload) => {
-          console.log('Queue changed by another user!', payload);
-          this.fetchQueues();
-        }
-      )
-      .subscribe();
-
-    // Return a cleanup function
-    return () => {
-      supabase.removeChannel(subscription);
-    };
+    this.ensureChannel();
+    return () => this.teardownChannel();
   }
 }
 
