@@ -22,6 +22,7 @@ const NAV_ITEMS = [
   { label: 'lecturetex',           path: 'https://lecturetex.juhi.studio' },
   { label: 'devlog',               path: 'https://devlog.juhi.studio' },
   { label: 'electoral-equilibrium', path: 'https://electoral.juhi.studio' },
+  { label: 'RAZE', path: 'https://raze.juhi.studio' },
 ];
 
 type HistoryEntry = { cmd: string; out: string[] };
